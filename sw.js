@@ -1,5 +1,5 @@
 // Diário do Bebê: funciona offline e recebe as notificações
-const CACHE = 'diario-v2';
+const CACHE = 'diario-v3';
 const SHELL = ['./', './index.html', './vendor/supabase.js', './manifest.webmanifest', './icons/icon-192.png', './icons/favicon.svg'];
 
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL))); self.skipWaiting(); });
