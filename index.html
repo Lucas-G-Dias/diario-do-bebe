@@ -455,6 +455,30 @@ img[data-p]:not([src]){opacity:0}
 .swatches input{position:absolute;opacity:0;inset:0;margin:0}
 .swatches span{display:block;width:34px;height:34px;border-radius:50%;background:var(--c);box-shadow:inset 0 0 0 3px var(--surface)}
 .swatches input:checked+span{outline:3px solid var(--c);outline-offset:2px}
+/* ===== v6: painel de estoque, checklist ===== */
+.stock{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.stk{border:0;text-align:left;background:var(--surface);border-radius:var(--r-lg);box-shadow:var(--shadow);padding:12px;display:flex;flex-direction:column;gap:6px;cursor:pointer;color:var(--ink);min-width:0}
+.stk-h{display:flex;align-items:center;gap:8px;font-weight:700;font-size:13.5px;flex-wrap:nowrap;min-width:0}
+.stk-h>span:nth-child(2){overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stk-h .ic{width:30px;height:30px;border-radius:10px}.stk-h .ic svg{width:17px;height:17px}
+.stdot{margin-left:auto;width:10px;height:10px;border-radius:50%;background:var(--c);flex:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--c) 22%,transparent)}
+.stwarn{color:var(--c)}
+.stk-v{font-family:var(--display);font-weight:600;font-size:30px;line-height:1;font-variant-numeric:tabular-nums;margin-top:4px}
+.stk-s{font-size:12px;color:var(--muted);line-height:1.3;min-height:2.6em}
+.gauge{height:8px;border-radius:99px;background:var(--surface2);overflow:hidden}
+.gauge i{display:block;height:100%;border-radius:99px;background:var(--c);transition:width .7s var(--ease)}
+.stk-f{display:flex;flex-direction:column;gap:4px;font-size:11.5px;color:var(--muted);line-height:1.35;margin-top:4px}
+.stk-f b{color:var(--ink)}
+.spark{width:100%;height:30px;display:block}
+@media (max-width:380px){.stk{padding:10px}.stk-v{font-size:25px}}
+.ck{width:30px;height:30px;border-radius:50%;border:2px solid var(--line);background:var(--surface);display:grid;place-items:center;cursor:pointer;flex:none;color:transparent;transition:background .2s,border-color .2s,transform .15s}
+.ck svg{width:16px;height:16px}
+.ck.on{background:var(--ok);border-color:var(--ok);color:#fff}
+.ck:active{transform:scale(.9)}
+.enx-row{gap:10px}
+.plus1{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 10px;font-weight:700;font-size:12.5px;cursor:pointer;color:var(--ink);white-space:nowrap}
+.stmini{border:0;background:none;padding:4px 2px;font-size:11.5px;font-weight:700;color:var(--c);cursor:pointer;white-space:nowrap}
+.donemeta{color:var(--ok);font-weight:600}
 /* ===== v5 ===== */
 .szhead{display:flex;justify-content:space-between;align-items:center;font-family:var(--display);font-weight:600;font-size:14.5px;padding:12px 2px 4px;border-bottom:1px solid var(--line);color:var(--accent)}
 .szhead span{font-family:var(--body);font-size:12px;color:var(--muted);font-weight:700}
@@ -663,6 +687,7 @@ async function addEvent(o){
  const id=newId(),ym=ymOf(o.start);
  await w(store.set('months/'+ym+'/events/'+id,{...o,by:WHO,createdAt:Date.now()}));
  if(o.type==='diaper'&&o.itemId)adjustItem(o.itemId,-1);
+ if(o.type==='diaper')wipeUse(o.kind,1);
 }
 async function updateEvent(old,o){
  const doc={...strip(old),...o};
@@ -675,6 +700,7 @@ async function updateEvent(old,o){
 async function deleteEvent(ev){
  await w(store.del('months/'+ev.ym+'/events/'+ev.id));
  if(ev.type==='diaper'&&ev.itemId)adjustItem(ev.itemId,1);
+ if(ev.type==='diaper')wipeUse(ev.kind,-1);
 }
 async function adjustItem(id,delta){const it=S.inv.find(i=>i.id===id);if(!it)return;await w(store.set('inventory/'+id,{...strip(it),qty:Math.max(0,(+it.qty||0)+delta)}))}
 
@@ -786,6 +812,7 @@ const ICP={
  heartf:'<path d="M12 20.5s-8-5-8-10.7A4.4 4.4 0 0 1 12 7.2a4.4 4.4 0 0 1 8 2.6c0 5.7-8 10.7-8 10.7z" fill="currentColor"/>',
  pen:'<path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>',
  cloudoff:'<path d="M3 3l18 18"/><path d="M8.5 6.4A5.5 5.5 0 0 1 17.1 8.5 3.5 3.5 0 0 1 19.8 14M17 17H7a4 4 0 0 1-1.3-7.8"/>',
+ check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',
  cake:'<path d="M4 21h16v-8H4zM4 16.5c2 1.5 4 1.5 6 0s4-1.5 6 0 4 1.5 4 0M12 13V9.5"/><path d="M12 7c-1-1-1-2.2 0-4 1 1.8 1 3 0 4z"/>'
 };
 const ic=n=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICP[n]||''}</svg>`;
@@ -1404,7 +1431,8 @@ function homeAlerts(){
  const d=diaperStats();
  if(!d.items.length)out.push({c:'var(--diaper)',i:'diaper',t:'Cadastre as fraldas',s:'Por tamanho, para o app avisar antes de acabar.',a:'tab',id:'fraldas',l:'Cadastrar'});
  else if(d.st==='bad'||d.st==='warn')out.push({c:`var(--${d.st==='bad'?'bad':'warn'})`,i:'diaper',t:d.st==='bad'?'Fraldas acabando':'Comprar fraldas em breve',s:`Restam ${d.total}, dá para uns ${Math.floor(d.days)} dias`,a:'buyDiaper',l:'Comprei'});
- const sh=shopping();if(sh.length)out.push({c:'var(--warn)',i:'bag',t:'Lista de compras',s:sh.map(i=>i.name).slice(0,3).join(', '),a:'tab',id:'estoque',l:'Ver'});
+ const wp=wipesAll();if(wp.n&&(wp.st==='bad'||wp.st==='warn'))out.push({c:`var(--${wp.st==='bad'?'bad':'warn'})`,i:'drop',t:wp.st==='bad'?'Lenços acabando':'Comprar lenços em breve',s:`Restam uns ${wp.total} lenços, dá para ${Math.max(0,Math.floor(wp.days))} dias`,a:'wipeAdd',l:'Comprei'});
+ const sh=shopping().filter(i=>i.cat!=='lenco');if(sh.length)out.push({c:'var(--warn)',i:'bag',t:'Lista de compras',s:sh.map(i=>i.name).slice(0,3).join(', '),a:'tab',id:'estoque',l:'Ver'});
  const late=VAX.filter(v=>vaxStatus(v).s==='late'),soon=VAX.filter(v=>vaxStatus(v).s==='soon');
  if(late.length)out.push({c:'var(--bad)',i:'syringe',t:late.length>1?late.length+' vacinas atrasadas':'Vacina atrasada',s:late.slice(0,2).map(v=>v[1]).join(', '),a:'tab',id:'saude',l:'Ver'});
  else if(soon.length)out.push({c:'var(--warn)',i:'syringe',t:'Vacina chegando: '+soon[0][1],s:vaxStatus(soon[0]).l,a:'tab',id:'saude',l:'Ver'});
@@ -1426,6 +1454,7 @@ VIEWS.inicio=()=>{
  const recent=ds.list.slice(0,5);
  return`<div class="now">${t1}${t2}${t3}</div>
  ${al.length?`<div class="alerts">${al.map(x=>`<div class="alert"><span class="ic" style="--c:${x.c}">${ic(x.i)}</span><div class="tx"><b>${esc(x.t)}</b>${x.s?`<span>${esc(x.s)}</span>`:''}</div><button class="btn sm" data-act="${x.a}"${x.id?` data-id="${esc(x.id)}"`:''}>${x.l}</button>${x.x?`<button class="x" data-act="${x.x}" aria-label="Dispensar">×</button>`:''}</div>`).join('')}</div>`:''}
+ ${stockPanel()}
  <div class="card"><div class="card-h"><h2>Hoje</h2><button class="linkbtn" data-act="tab" data-id="diario">Ver diário</button></div>
   <div class="today">${ring(ds.sleep/HR,ph.sonoH[0],'var(--sleep)',fmtDur(ds.sleep),'de sono')}
    <div class="mini"><div class="v">${ds.feeds}</div><div class="k">${ds.feeds===1?'mamada':'mamadas'}${ds.ml?' · '+ds.ml+' ml':''}</div></div>
@@ -1769,10 +1798,12 @@ VIEWS.fraldas=()=>{
    <span class="szbar"><i style="width:${q/max*100}%;--c:${on?'var(--accent)':q>=g?'var(--ok)':q?'var(--diaper)':'var(--line)'}"></i><s style="left:${g/max*100}%"></s></span>
    <span class="szn"><b>${q}</b>/${g}</span></button>`}).join('')}</div>
   <p class="small muted" style="margin:10px 0 0">A meta é uma sugestão de quanto ter de cada tamanho ao longo do uso. Toque num tamanho para mudar a quantidade, a meta ou usar esse tamanho.</p></div>
- <div class="card"><div class="card-h"><h2>Lenços umedecidos</h2><button class="btn sm" data-act="wipeAdd">Adicionar</button></div>
-  ${wipes.length?`<div class="rows">${wipes.map(it=>{const w=wipeStats(it),low=+it.min>0&&(+it.qty||0)<=+it.min;return`<div class="row"><div class="main" data-act="invEdit" data-id="${it.id}" style="cursor:pointer"><div class="ttl">${esc(it.name)} ${low?'<span class="pill bad">comprar</span>':''}</div><div class="small muted">${+it.perPack?it.perPack+' lenços por pacote · ':''}${w.days!=null?'dá para uns '+Math.floor(w.days)+' dias':'abra um pacote para o app estimar a duração'}</div></div>
-   <div class="qty"><button class="iconbtn" data-act="invDec" data-id="${it.id}" aria-label="Diminuir">−</button><span class="n">${it.qty||0}</span><button class="iconbtn" data-act="invInc" data-id="${it.id}" aria-label="Aumentar">+</button></div><button class="btn sm" data-act="wipeOpen" data-id="${it.id}">Abri um pacote</button></div>`}).join('')}</div>`
-  :`<div class="empty">Cadastre os pacotes de lenço para saber quantos tem e quando comprar.</div>`}</div>
+ <div class="card"><div class="card-h"><h2>Lenços umedecidos</h2><button class="btn sm primary" data-act="wipeAdd">Comprei / adicionar</button></div>
+  ${(()=>{const wp=wipesAll();if(!wp.n)return`<div class="empty">Cadastre os pacotes de lenço para saber quantos tem e quando comprar.</div>`;const per=wipePer();
+  return`<div class="stats" style="margin-bottom:10px"><div class="stat"><div class="v">${wp.total.toLocaleString('pt-BR')}</div><div class="k">lenços em casa</div></div><div class="stat"><div class="v">${wp.packs}</div><div class="k">pacotes fechados</div></div><div class="stat"><div class="v">${wp.days!=null?Math.floor(wp.days):'—'}</div><div class="k">dias até acabar</div></div><div class="stat"><div class="v">~${Math.round(wp.avg)}</div><div class="k">por dia ${wp.est?'(estimativa)':'(pelas trocas)'}</div></div></div>
+  ${wp.open?`<p class="small" style="margin:0 0 6px">Pacote aberto: <b>${esc(wp.open.name)}</b>, com uns <b>${+wp.open.openLeft||0}</b> lenços. Cada troca desconta sozinha: xixi ${per.xixi}, cocô ${per.coco}. <button class="linkbtn" data-act="wipePer">Ajustar</button></p>`:''}
+  <div class="rows">${wipeItems().sort((a,b)=>wipeLeft(b)-wipeLeft(a)).map(it=>{const low=+it.min>0&&(+it.qty||0)<=+it.min&&!(+it.openLeft>0);const on=wp.open&&wp.open.id===it.id;return`<div class="row"><div class="main" data-act="wipeEdit" data-id="${it.id}" style="cursor:pointer"><div class="ttl">${esc(it.name)} ${on?'<span class="pill ok">aberto</span>':''}${low?' <span class="pill bad">comprar</span>':''}</div><div class="small muted">${+it.perPack?`${wipeLeft(it).toLocaleString('pt-BR')} lenços · ${it.perPack} por pacote`:'falta informar lenços por pacote'}${+it.openLeft>0?` · aberto ~${it.openLeft}`:''}</div></div>
+   <div class="qty"><button class="iconbtn" data-act="invDec" data-id="${it.id}" aria-label="Menos um pacote">−</button><span class="n">${it.qty||0}</span><button class="iconbtn" data-act="invInc" data-id="${it.id}" aria-label="Mais um pacote">+</button></div><button class="btn sm" data-act="wipeOpen" data-id="${it.id}">Abri</button></div>`}).join('')}</div>`})()}</div>
  <div class="card"><div class="card-h"><h2>Trocas por dia</h2><span class="small muted">últimos 7 dias</span></div>${bars(st.map(x=>x.diapers),days.map(t=>WD[new Date(t).getDay()].slice(0,3)),'var(--diaper)')}</div>`;
 };
 A.frSize=z=>{const items=frBySize(z),it=items.find(i=>i.id===S.cfg.diaperItem)||items[0],q=sizeQty(z),on=activeSize()===z;
@@ -1783,11 +1814,24 @@ A.frSize=z=>{const items=frBySize(z),it=items.find(i=>i.id===S.cfg.diaperItem)||
   <label class="switch"><span class="tx">Este é o tamanho em uso<div class="small muted">Cada troca registrada desconta deste tamanho.</div></span><input type="checkbox" name="active"${on?' checked':''}></label>`,
   onSave:async fd=>{const o={...(it?strip(it):{cat:'fralda',size:z,unit:'un.',note:''}),name:'Fralda '+z+(fd.brand.trim()?' · '+fd.brand.trim():''),brand:fd.brand.trim(),qty:Math.max(0,+fd.qty||0),goal:Math.max(0,+fd.goal||0),min:Math.max(0,+fd.min||0),size:z};
    const id=it?it.id:newId();await w(store.set('inventory/'+id,o));if(fd.active&&S.cfg.diaperItem!==id)await w(store.set('config/main',{...S.cfg,diaperItem:id}));toast('Tamanho '+z+' salvo')}})};
-A.wipeAdd=()=>openModal({title:'Lenço umedecido',body:`${fld('Nome ou marca','<input name="name" id="wp-n" required placeholder="Ex.: Lenço Huggies">')}
- <div class="frow">${fld('Pacotes em casa','<input type="number" min="0" name="qty" id="wp-q" value="0" inputmode="numeric">')}${fld('Lenços por pacote','<input type="number" min="0" name="perPack" id="wp-p" placeholder="Ex.: 48" inputmode="numeric">')}${fld('Avisar com','<input type="number" min="0" name="min" id="wp-m" value="2" inputmode="numeric">')}</div>`,
- onSave:async fd=>{if(!fd.name.trim()){toast('Dê um nome.',true);return false}await w(store.set('inventory/'+newId(),{name:fd.name.trim(),cat:'lenco',qty:Math.max(0,+fd.qty||0),perPack:+fd.perPack||0,min:+fd.min||0,unit:'pacotes',note:'',opened:[]}));toast('Lenço cadastrado')}});
-A.wipeOpen=async id=>{const it=S.inv.find(i=>i.id===id);if(!it)return;if(!(+it.qty>0)){toast('Não há pacotes fechados. Registre uma compra.',true);return}
- const opened=[...(it.opened||[]),Date.now()].slice(-12);await w(store.set('inventory/'+id,{...strip(it),qty:+it.qty-1,opened}));toast(`Pacote aberto · restam ${+it.qty-1}`)};
+function wipeForm(it){const pp=[44,48,50,64,80,88,96,120,140];return`${fld('Marca',`<input name="name" id="wp-n" value="${esc(it.name||'')}" required list="wp-names" autocomplete="off" placeholder="Ex.: Huggies Recém-nascido">`)}<datalist id="wp-names">${wipeItems().map(i=>`<option value="${esc(i.name)}">`).join('')}</datalist>
+ <div class="frow">${fld(it.id?'Pacotes fechados':'Quantos pacotes',`<input type="number" min="0" name="qty" id="wp-q" value="${it.id?+it.qty||0:''}" inputmode="numeric" placeholder="Ex.: 4">`)}${fld('Lenços por pacote',`<input type="number" min="0" name="perPack" id="wp-p" value="${+it.perPack||''}" inputmode="numeric" placeholder="Ex.: 48">`)}</div>
+ <div class="chips">${pp.map(n=>`<button type="button" class="chip" data-act="setPP" data-id="${n}" aria-pressed="${+it.perPack===n}">${n} por pacote</button>`).join('')}</div>
+ ${it.id?`<div class="frow">${fld('Lenços no pacote aberto',`<input type="number" min="0" name="openLeft" id="wp-o" value="${+it.openLeft||0}" inputmode="numeric">`)}${fld('Avisar com (pacotes)',`<input type="number" min="0" name="min" id="wp-m" value="${it.min??2}" inputmode="numeric">`)}</div>`:''}`}
+A.setPP=n=>{const el=$('#wp-p');if(el)el.value=n;document.querySelectorAll('[data-act=setPP]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.id===String(n)))};
+A.wipeAdd=()=>openModal({title:'Comprei lenços',saveLabel:'Somar ao estoque',body:wipeForm({})+'<p class="small muted" style="margin:0">Se a marca já estiver cadastrada, os pacotes são somados a ela.</p>',
+ onSave:async fd=>{const name=fd.name.trim(),q=Math.max(0,+fd.qty||0),pp=+fd.perPack||0;if(!name){toast('Informe a marca.',true);return false}if(!q){toast('Informe quantos pacotes.',true);return false}
+  const ex=wipeItems().find(i=>i.name.trim().toLowerCase()===name.toLowerCase());
+  if(ex){await w(store.set('inventory/'+ex.id,{...strip(ex),qty:(+ex.qty||0)+q,perPack:pp||+ex.perPack||0}));toast(`+${q} ${q>1?'pacotes':'pacote'} de ${ex.name}`)}
+  else{await w(store.set('inventory/'+newId(),{name,cat:'lenco',qty:q,perPack:pp,openLeft:0,min:2,unit:'pacotes',note:'',opened:[]}));toast('Lenços cadastrados')}}});
+A.wipeEdit=id=>{const it=S.inv.find(i=>i.id===id);if(!it)return;openModal({title:'Editar lenço',body:wipeForm(it)+`<label class="switch"><span class="tx">Usar este primeiro<div class="small muted">As trocas descontam deste pacote.</div></span><input type="checkbox" name="first"${S.cfg.wipeItem===id?' checked':''}></label>`,
+ onSave:async fd=>{if(!fd.name.trim())return false;await w(store.set('inventory/'+id,{...strip(it),name:fd.name.trim(),qty:Math.max(0,+fd.qty||0),perPack:+fd.perPack||0,openLeft:Math.max(0,+fd.openLeft||0),min:Math.max(0,+fd.min||0)}));
+  if(fd.first&&S.cfg.wipeItem!==id)await w(store.set('config/main',{...S.cfg,wipeItem:id}));toast('Salvo')},
+ onDelete:async()=>{await w(store.del('inventory/'+id));toast('Removido')}})};
+A.wipePer=()=>{const p=wipePer();openModal({title:'Lenços por troca',body:`<p class="small muted" style="margin:0">Quantos lenços vocês costumam usar em cada troca. O app desconta do pacote aberto sozinho.</p><div class="frow">${fld('Xixi',`<input type="number" min="0" name="xixi" value="${p.xixi}" inputmode="numeric">`)}${fld('Cocô',`<input type="number" min="0" name="coco" value="${p.coco}" inputmode="numeric">`)}${fld('Xixi e cocô',`<input type="number" min="0" name="ambos" value="${p.ambos}" inputmode="numeric">`)}</div>`,
+ onSave:async fd=>{await w(store.set('config/main',{...S.cfg,wipesPer:{xixi:+fd.xixi||0,coco:+fd.coco||0,ambos:+fd.ambos||0,seca:0}}));toast('Salvo')}})};
+A.wipeOpen=async id=>{const it=S.inv.find(i=>i.id===id);if(!it)return;if(!(+it.qty>0)){toast('Não há pacotes fechados. Toque em Comprei para somar.',true);return}
+ const opened=[...(it.opened||[]),Date.now()].slice(-12);await w(store.set('inventory/'+id,{...strip(it),qty:+it.qty-1,openLeft:+it.perPack||0,opened}));if(S.cfg.wipeItem!==id)await store.set('config/main',{...S.cfg,wipeItem:id});toast(`Pacote de ${it.name} aberto · ${+it.qty-1} fechados`)};
 
 /* ---------- enxoval ---------- */
 const ENX_CATS=[['roupas','Roupinhas','var(--feed)','bag'],['troca','Fraldas e troca','var(--diaper)','diaper'],['higiene','Higiene e saúde','var(--health)','thermo'],['banho','Banho','var(--diaper)','drop'],['quarto','Sono e quarto','var(--sleep)','moon'],['alimentacao','Alimentação e amamentação','var(--feed)','bottle'],['passeio','Passeio e transporte','var(--accent)','star'],['acessorios','Acessórios e brinquedos','var(--growth)','heart'],['outros','Outros','var(--other)','box']];
@@ -1830,11 +1874,14 @@ VIEWS.enxoval=()=>{
  <div class="alb-head"><div class="alb-tabs">${[['todos','Todos'],['falta','Faltando'],['vendo','Pesquisando'],['prontos','Prontos']].map(([k,l])=>`<button class="chip" aria-pressed="${ENXF===k}" data-act="enxF" data-id="${k}">${l}</button>`).join('')}</div></div>
  ${cats.map(([c,l])=>{const vis=l.filter(filt).sort((a,b)=>(ENX_DONE(a.status)-ENX_DONE(b.status))||a.name.localeCompare(b.name));if(!vis.length&&c[0]!=='troca')return'';const s=enxStats(l);
   return`<div class="card" id="enx-${c[0]}"><div class="card-h"><div style="display:flex;align-items:center;gap:10px"><span class="ic" style="--c:${c[2]}">${ic(c[3])}</span><h2>${c[1]}</h2></div><span class="small muted">${s.n?s.done+' de '+s.n:''}</span></div>
-  ${c[0]==='troca'?frSummary():''}
+  ${c[0]==='troca'?`<div style="margin-bottom:8px">${stockPanel()}</div>`:''}
   <div class="rows">${enxRows(c[0],vis)}</div></div>`}).join('')||`<div class="empty">Nenhum item neste filtro.</div>`}
  <div style="text-align:center"><button class="linkbtn" data-act="enxSuggMissing">Adicionar sugestões que ainda não estão na lista</button></div>`;
 };
-function enxRow(i){const stt=ENX_ST.find(x=>x[0]===(i.status||'falta'))||ENX_ST[0];return`<div class="row enx-row"><div class="main" data-act="enxEdit" data-id="${i.id}" style="cursor:pointer"><div class="ttl${ENX_DONE(i.status)?' done':''}">${esc(i.name)}</div><div class="small muted">${+i.qty>1||+i.have?`${+i.have||0} de ${+i.qty||1}`:''}${i.size&&enxCat(i)!=='roupas'?' · '+esc(i.size):''}${+i.price?' · '+money(i.price):''}${i.note?' · '+esc(i.note):''}</div></div><button class="stbtn" style="--c:${stt[2]}" data-act="enxSt" data-id="${i.id}" aria-label="Mudar situação: ${stt[1]}">${stt[1]}</button></div>`}
+function enxRow(i){const done=ENX_DONE(i.status),q=+i.qty||1,h=+i.have||0,st=i.status||'falta',stt=ENX_ST.find(x=>x[0]===st)||ENX_ST[0];
+ const meta=done?`<span class="donemeta">${st==='ganhou'?'Ganhou':'Comprado'}${i.doneBy?' por '+esc(i.doneBy):''}${i.doneAt?' em '+fmtD(i.doneAt):''}</span>`:(q>1||h?`${h} de ${q}`:'');
+ return`<div class="row enx-row"><button class="ck${done?' on':''}" data-act="enxCheck" data-id="${i.id}" aria-label="${done?'Desmarcar':'Marcar como comprado'}: ${esc(i.name)}" aria-pressed="${done}">${ic('check')}</button><div class="main" data-act="enxEdit" data-id="${i.id}" style="cursor:pointer"><div class="ttl${done?' done':''}">${esc(i.name)}</div><div class="small muted">${meta}${i.size&&enxCat(i)!=='roupas'?' · '+esc(i.size):''}${+i.price?' · '+money(i.price):''}${i.note&&!done?' · '+esc(i.note):''}</div></div>
+ ${!done&&q>1?`<button class="plus1" data-act="enxPlus" data-id="${i.id}">+1</button>`:''}${!done?`<button class="stmini" style="--c:${st==='vendo'?'var(--warn)':'var(--muted)'}" data-act="enxSt" data-id="${i.id}">${st==='vendo'?'Pesquisando':'Pesquisar'}</button>`:''}</div>`}
 function enxRows(cat,vis){if(cat!=='roupas')return vis.map(enxRow).join('');const order=[...ENX_SIZES,''],g={};vis.forEach(i=>{const z=ENX_SIZES.includes(i.size)?i.size:(i.size||'');(g[z]=g[z]||[]).push(i)});
  return Object.keys(g).sort((a,b)=>(order.indexOf(a)<0?99:order.indexOf(a))-(order.indexOf(b)<0?99:order.indexOf(b))).map(z=>`<div class="szhead">${z?(/^\d/.test(z)?z+(z==='1'?' ano':' anos'):'Tamanho '+esc(z)):'Sem tamanho'}<span>${g[z].filter(i=>ENX_DONE(i.status)).length} de ${g[z].length}</span></div>${g[z].map(enxRow).join('')}`).join('')}
 function frSummary(){const any=S.inv.some(i=>i.cat==='fralda'),wp=S.inv.filter(i=>i.cat==='lenco'),pk=wp.reduce((s,i)=>s+(+i.qty||0),0);
@@ -1846,8 +1893,10 @@ A.enxJump=k=>{if(ENXF!=='todos'){ENXF='todos';render()}const el=$('#enx-'+k);if(
 A.enxSugg=async()=>{await w(store.setMany(ENX_SUGG.map(suggDoc)));toast('Lista sugerida adicionada')};
 A.enxSuggMissing=async()=>{const have=new Set(S.enx.map(i=>enxKey(i.name,i.size))),miss=ENX_SUGG.filter(x=>!have.has(enxKey(x[1],x[3])));if(!miss.length){toast('Todas as sugestões já estão na lista.');return}
  await w(store.setMany(miss.map(suggDoc)));toast(`${miss.length} sugestões adicionadas`)};
-A.enxSt=async id=>{const i=S.enx.find(x=>x.id===id);if(!i)return;const order=['falta','vendo','comprado','ganhou'],nx=order[(order.indexOf(i.status||'falta')+1)%order.length];
- const o={...strip(i),status:nx};if(ENX_DONE(nx)&&!(+i.have>0))o.have=+i.qty||1;if(nx==='falta')o.have=0;await w(store.set('enxoval/'+id,o))};
+A.enxSt=async id=>{const i=S.enx.find(x=>x.id===id);if(!i)return;await w(store.set('enxoval/'+id,{...strip(i),status:i.status==='vendo'?'falta':'vendo'}))};
+const markDone=(i,st)=>({...strip(i),status:st,have:Math.max(+i.have||0,+i.qty||1),doneAt:Date.now(),doneBy:WHO});
+A.enxCheck=async id=>{const i=S.enx.find(x=>x.id===id);if(!i)return;const o=ENX_DONE(i.status)?{...strip(i),status:'falta',have:0,doneAt:null,doneBy:null}:markDone(i,'comprado');await w(store.set('enxoval/'+id,o));if(o.status==='comprado')toast(`${i.name} ✓`)};
+A.enxPlus=async id=>{const i=S.enx.find(x=>x.id===id);if(!i)return;const h=(+i.have||0)+1,q=+i.qty||1;const o=h>=q?markDone(i,'comprado'):{...strip(i),have:h};await w(store.set('enxoval/'+id,o));toast(h>=q?`${i.name} completo ✓`:`${i.name}: ${h} de ${q}`)};
 function sizeSelect(name,id,opts,val,blank){const o=[...opts];if(val&&!o.includes(val))o.push(val);return`<select name="${name}" id="${id}"><option value="">${blank}</option>${o.map(z=>`<option${z===val?' selected':''}>${esc(z)}</option>`).join('')}</select>`}
 function enxForm(i){return`${fld('Item',`<input name="name" id="ex-n" value="${esc(i.name||'')}" required list="enx-names" autocomplete="off" placeholder="Comece a digitar: body, banheira…">`)}<datalist id="enx-names">${[...new Set(ENX_SUGG.map(x=>x[1]))].map(n=>`<option value="${esc(n)}">`).join('')}</datalist>
  <div class="frow">${fld('Categoria',`<select name="cat" id="ex-c">${ENX_CATS.map(c=>`<option value="${c[0]}"${enxCat(i)===c[0]?' selected':''}>${c[1]}</option>`).join('')}</select>`)}${fld('Tamanho',sizeSelect('size','ex-s',ENX_SIZES,i.size||'','Sem tamanho'))}</div>
@@ -1855,10 +1904,46 @@ function enxForm(i){return`${fld('Item',`<input name="name" id="ex-n" value="${e
  <div class="frow">${fld('Quantidade ideal',`<input type="number" min="1" name="qty" id="ex-q" value="${+i.qty||1}" inputmode="numeric">`)}${fld('Já tem',`<input type="number" min="0" name="have" id="ex-h" value="${+i.have||0}" inputmode="numeric">`)}${fld('Valor pago (R$)',`<input name="price" id="ex-p" value="${+i.price?String(i.price).replace('.',','):''}" inputmode="decimal" placeholder="0,00">`)}</div>
  ${fld('Observação',`<input name="note" id="ex-o" value="${esc(i.note||'')}" placeholder="Loja, link, quem vai dar de presente…">`)}`}
 function enxFrom(fd){if(!fd.name.trim()){toast('Dê um nome ao item.',true);return null}const qty=Math.max(1,+fd.qty||1);let have=Math.max(0,+fd.have||0);if(ENX_DONE(fd.status)&&!have)have=qty;
- return{name:fd.name.trim(),cat:fd.cat,size:fd.size.trim(),status:fd.status,qty,have,price:parseFloat(String(fd.price||'').replace(/\./g,'').replace(',','.'))||0,note:fd.note.trim()}}
+ return{name:fd.name.trim(),cat:fd.cat,size:fd.size.trim(),status:fd.status,qty,have,...(ENX_DONE(fd.status)?{doneBy:WHO}:{}),price:parseFloat(String(fd.price||'').replace(/\./g,'').replace(',','.'))||0,note:fd.note.trim()}}
 function enxMount(f){const n=f.querySelector('#ex-n');n.addEventListener('change',()=>{const m=ENX_SUGG.find(x=>x[1].toLowerCase()===n.value.trim().toLowerCase());if(!m)return;f.querySelector('#ex-c').value=m[0];const s=f.querySelector('#ex-s');if(m[3]&&![...s.options].some(o=>o.value===m[3]))s.add(new Option(m[3],m[3]));s.value=m[3]||'';f.querySelector('#ex-q').value=m[2]})}
 A.enxAdd=()=>openModal({title:'Novo item do enxoval',body:enxForm({}),mount:enxMount,onSave:async fd=>{const o=enxFrom(fd);if(!o)return false;await w(store.set('enxoval/'+newId(),{...o,createdAt:Date.now()}));toast('Item adicionado')}});
-A.enxEdit=id=>{const i=S.enx.find(x=>x.id===id);if(!i)return;openModal({title:'Editar item',body:enxForm(i),onSave:async fd=>{const o=enxFrom(fd);if(!o)return false;await w(store.set('enxoval/'+id,{...strip(i),...o}));toast('Salvo')},onDelete:async()=>{await w(store.del('enxoval/'+id));toast('Item removido')}})};
+A.enxEdit=id=>{const i=S.enx.find(x=>x.id===id);if(!i)return;openModal({title:'Editar item',body:enxForm(i),onSave:async fd=>{const o=enxFrom(fd);if(!o)return false;if(ENX_DONE(o.status)&&!ENX_DONE(i.status))o.doneAt=Date.now();else if(ENX_DONE(o.status)){o.doneAt=i.doneAt||Date.now();o.doneBy=i.doneBy||WHO}else{o.doneAt=null;o.doneBy=null}await w(store.set('enxoval/'+id,{...strip(i),...o}));toast('Salvo')},onDelete:async()=>{await w(store.del('enxoval/'+id));toast('Item removido')}})};
+
+/* ---------- lenços: estoque em lenços, gasto estimado pelas trocas ---------- */
+const WIPE_DEF={xixi:2,coco:5,ambos:5,seca:0};
+const wipePer=()=>({...WIPE_DEF,...(S.cfg?.wipesPer||{})});
+const wipeItems=()=>S.inv.filter(i=>i.cat==='lenco');
+const wipeLeft=it=>(+it.qty||0)*(+it.perPack||0)+(+it.openLeft||0);
+function wipePrimary(){const w=wipeItems().filter(i=>+i.perPack>0);return w.find(i=>i.id===S.cfg?.wipeItem&&(+i.openLeft>0||+i.qty>0))||w.find(i=>+i.openLeft>0)||[...w].filter(i=>+i.qty>0).sort((a,b)=>(+b.qty)-(+a.qty))[0]||null}
+function diaperAvgByKind(){const now=Date.now(),evs=allEv().filter(e=>e.type==='diaper'&&e.start<=now&&e.start>=now-7*DAY);if(evs.length<3)return null;
+ const first=Math.min(...evs.map(e=>e.start)),span=Math.max(1,Math.min(7,(now-first)/DAY)),per=wipePer();return evs.reduce((s,e)=>s+(per[e.kind]??2),0)/span}
+function wipesAll(){const w=wipeItems(),total=w.reduce((s,i)=>s+wipeLeft(i),0),packs=w.reduce((s,i)=>s+(+i.qty||0),0),noSize=w.filter(i=>!(+i.perPack)).length;
+ let avg=diaperAvgByKind(),est=false;if(avg==null){avg=diaperStats().avg*3.2;est=true}
+ const days=avg>0?total/avg:null,today=allEv().filter(e=>e.type==='diaper'&&e.start>=dayStart(Date.now())).reduce((s,e)=>s+(wipePer()[e.kind]??2),0);
+ let st='ok',label='Tranquilo';if(!w.length){st='neutral';label='Cadastre os lenços'}else if(days!=null&&days<=3){st='bad';label='Comprar já'}else if(days!=null&&days<=7){st='warn';label='Comprar em breve'}
+ const open=wipePrimary();return{total,packs,n:w.length,avg,est,days,today,st,label,noSize,open}}
+async function wipeUse(kind,sign){const it=wipePrimary()||(sign<0?wipeItems().find(i=>i.id===S.cfg?.wipeItem):null);if(!it||!(+it.perPack))return;const n=wipePer()[kind]??2;if(!n)return;
+ let open=(+it.openLeft||0)-sign*n,qty=+it.qty||0;const opened=[...(it.opened||[])];
+ if(sign>0){while(open<0&&qty>0){qty--;open+=+it.perPack;opened.push(Date.now())}if(open<0)open=0}
+ await store.set('inventory/'+it.id,{...strip(it),qty,openLeft:open,opened:opened.slice(-12)})}
+
+/* ---------- painel de estoque (Início, Enxoval) ---------- */
+function spark(vals,color){const W=150,H=42,mx=Math.max(1,...vals),bw=W/vals.length;return`<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">${vals.map((v,i)=>`<rect x="${(i*bw+bw*.18).toFixed(1)}" y="${(H-Math.max(2,v/mx*(H-4))).toFixed(1)}" width="${(bw*.64).toFixed(1)}" height="${Math.max(2,v/mx*(H-4)).toFixed(1)}" rx="2" fill="${color}" opacity="${i===vals.length-1?1:.45}"/>`).join('')}</svg>`}
+function gauge(days,st){const pct=days==null?0:Math.min(100,days/30*100);return`<div class="gauge"><i style="width:${pct}%;--c:var(--${st==='bad'?'bad':st==='warn'?'warn':'ok'})"></i></div>`}
+function stockPanel(link){
+ const d=diaperStats(),wp=wipesAll(),sz=activeSize();
+ const days=[...Array(7)].map((_,i)=>addDays(dayStart(Date.now()),i-6)),st=days.map(dayStats),used7=st.reduce((s,x)=>s+x.diapers,0);
+ const per=wipePer(),wipe7=days.map(t=>allEv().filter(e=>e.type==='diaper'&&e.start>=t&&e.start<addDays(t,1)).reduce((s,e)=>s+(per[e.kind]??2),0));
+ const dTxt=d.days!=null&&d.items.length?(d.days<1?'acaba hoje':`dá para uns ${Math.floor(d.days)} dias`):'';
+ const wTxt=wp.days!=null&&wp.n?(wp.days<1?'acaba hoje':`dá para uns ${Math.floor(wp.days)} dias`):'';
+ return`<div class="stock">
+  <button class="stk" data-act="tab" data-id="fraldas"><span class="stk-h"><span class="ic" style="--c:var(--diaper)">${ic('diaper')}</span><span>Fraldas${sz?' '+sz:''}</span>${d.items.length?`<i class="stdot" style="--c:var(--${d.st==='bad'?'bad':d.st==='warn'?'warn':'ok'})" title="${d.label}"></i>`:''}</span>
+   <span class="stk-v">${d.items.length?d.total.toLocaleString('pt-BR'):'—'}</span><span class="stk-s">${d.items.length?(d.st==='bad'||d.st==='warn'?`<b class="stwarn" style="--c:var(--${d.st==='bad'?'bad':'warn'})">${d.label}</b> · `:'')+dTxt:'Toque para cadastrar'}</span>${gauge(d.items.length?d.days:null,d.st)}
+   <span class="stk-f">${spark(st.map(x=>x.diapers),'var(--diaper)')}<span>Hoje <b>${d.today}</b> · 7 dias <b>${used7}</b> · média <b>${num(d.avg)}</b>/dia${d.est?' (estim.)':''}</span></span></button>
+  <button class="stk" data-act="tab" data-id="fraldas"><span class="stk-h"><span class="ic" style="--c:var(--accent)">${ic('drop')}</span><span>Lenços</span>${wp.n?`<i class="stdot" style="--c:var(--${wp.st==='bad'?'bad':wp.st==='warn'?'warn':'ok'})" title="${wp.label}"></i>`:''}</span>
+   <span class="stk-v">${wp.n?wp.total.toLocaleString('pt-BR'):'—'}</span><span class="stk-s">${wp.n&&(wp.st==='bad'||wp.st==='warn')?`<b class="stwarn" style="--c:var(--${wp.st==='bad'?'bad':'warn'})">${wp.label}</b> · `:''}${wp.n?`${wp.packs} ${wp.packs===1?'pacote':'pacotes'}${wp.open&&+wp.open.openLeft>0?` + aberto (~${wp.open.openLeft})`:''}${wTxt?' · '+wTxt:''}`:'Toque para cadastrar'}</span>${gauge(wp.n?wp.days:null,wp.st)}
+   <span class="stk-f">${spark(wipe7,'var(--accent)')}<span>Hoje ~<b>${wp.today}</b> · média ~<b>${Math.round(wp.avg)}</b>/dia${wp.est?' (estim.)':''}</span></span></button>
+ </div>${wp.noSize?`<p class="small muted" style="margin:8px 2px 0">${wp.noSize} ${wp.noSize>1?'marcas de lenço sem':'marca de lenço sem'} "lenços por pacote" preenchido; elas não entram na conta.</p>`:''}`}
 
 /* ============ início ============ */
 function subscribeAll(){

@@ -68,8 +68,20 @@ async function checkFamily(fid: string) {
     const days = total / avg;
     if (days <= 3) await notify(`diaper:${L.iso}`, total ? "Fraldas acabando" : "Acabaram as fraldas", total ? `Restam ${total} fraldas${szTxt}, dá para ${days < 1 ? "menos de 1 dia" : "uns " + Math.floor(days) + (Math.floor(days) > 1 ? " dias" : " dia")}. Hora de comprar!` : "O estoque de fraldas está zerado no app.", "estoque", "fralda");
   }
+  // lenços: estoque em lenços e gasto estimado pelas trocas
+  const wp = inv.filter((i) => i.cat === "lenco" && +i.perPack > 0);
+  if (wp.length && L.hour >= 9) {
+    const per: Record<string, number> = { xixi: 2, coco: 5, ambos: 5, seca: 0, ...(cfg.wipesPer || {}) };
+    const tot = wp.reduce((s, i) => s + (+i.qty || 0) * (+i.perPack) + (+i.openLeft || 0), 0);
+    const dv = events.filter((e) => e.type === "diaper" && e.start <= now && e.start >= now - 7 * DAY);
+    let avgW: number;
+    if (dv.length >= 3) { const first = Math.min(...dv.map((e) => e.start)); avgW = dv.reduce((s, e) => s + (per[e.kind] ?? 2), 0) / Math.max(1, Math.min(7, (now - first) / DAY)); }
+    else avgW = 8 * 3.2;
+    const dw = avgW > 0 ? tot / avgW : 99;
+    if (dw <= 3) await notify(`wipe:${L.iso}`, "Lenços acabando", `Restam uns ${tot} lenços, dá para ${dw < 1 ? "menos de 1 dia" : "uns " + Math.floor(dw) + (Math.floor(dw) > 1 ? " dias" : " dia")}.`, "inicio", "fralda");
+  }
   // lista de compras
-  const low = inv.filter((i) => i.cat !== "fralda" && +i.min > 0 && (+i.qty || 0) <= +i.min);
+  const low = inv.filter((i) => i.cat !== "fralda" && i.cat !== "lenco" && +i.min > 0 && (+i.qty || 0) <= +i.min);
   if (low.length && L.hour >= 9) await notify(`shop:${L.iso}`, "Lista de compras", "Está acabando: " + low.map((i) => i.name).slice(0, 5).join(", ") + (low.length > 5 ? "…" : ""), "estoque", "compras");
 
   // compromissos e exames
