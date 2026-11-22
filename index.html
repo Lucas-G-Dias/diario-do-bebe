@@ -245,6 +245,148 @@ ul.marks li{margin:3px 0}
 .gc{color:var(--ok);font-weight:700;font-size:12.5px;white-space:nowrap}
 .snip{font-size:13px;margin-top:4px;color:var(--ink);background:var(--surface2);border-radius:8px;padding:6px 9px;white-space:pre-wrap;overflow-wrap:anywhere}
 ol.steps{margin:6px 0 0;padding-left:20px}ol.steps li{margin:4px 0}
+/* ===== v2: app shell, navegação, transições ===== */
+:root{--r-lg:20px;--shadow:0 1px 2px rgb(16 42 54 / .05),0 6px 20px rgb(16 42 54 / .06);--nav-h:68px;--ease:cubic-bezier(.2,.8,.2,1)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--shadow:0 1px 2px rgb(0 0 0 / .3),0 8px 24px rgb(0 0 0 / .25)}}
+:root[data-theme="dark"]{--shadow:0 1px 2px rgb(0 0 0 / .3),0 8px 24px rgb(0 0 0 / .25)}
+body{padding-bottom:calc(var(--nav-h) + 16px + env(safe-area-inset-bottom,0px))}
+.wrap{max-width:760px}
+.card{border-radius:var(--r-lg);box-shadow:var(--shadow);border-color:transparent}
+.appbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:15;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px)}
+.appbar .in{max-width:760px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));min-height:60px}
+.appbar .logo svg{width:34px;height:34px;display:block}
+.appbar .t1{font-family:var(--display);font-weight:600;font-size:19px;line-height:1.1}
+.appbar .t2{font-size:12.5px;color:var(--muted)}
+.appbar .grow{flex:1;min-width:0}
+.appbar h1{font-size:22px}
+.back{width:38px;height:38px;border-radius:12px;border:0;background:var(--surface);box-shadow:var(--shadow);display:grid;place-items:center;cursor:pointer;color:var(--ink)}
+.back svg{width:20px;height:20px}
+.who-chip{border:0;background:var(--accent-soft);color:var(--accent);font-weight:700;border-radius:999px;padding:6px 12px;font-size:13px;cursor:pointer}
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:25;background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--line);padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))}
+.nav .in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr);align-items:end}
+.nb{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:700;color:var(--muted);cursor:pointer;padding:6px 0;position:relative}
+.nb svg{width:24px;height:24px;transition:transform .25s var(--ease)}
+.nb[aria-current="page"]{color:var(--accent)}
+.nb[aria-current="page"] svg{transform:translateY(-1px) scale(1.08)}
+.nb .badge{position:absolute;top:3px;left:calc(50% + 6px);width:8px;height:8px;border-radius:50%;background:var(--bad);border:2px solid var(--surface)}
+.fab{justify-self:center;width:56px;height:56px;border-radius:18px;border:0;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;box-shadow:0 8px 22px color-mix(in srgb,var(--accent) 45%,transparent);transform:translateY(-12px);cursor:pointer;transition:transform .2s var(--ease)}
+.fab svg{width:28px;height:28px}
+.fab:active{transform:translateY(-12px) scale(.93)}
+main.view{padding-block:8px 24px}
+.view-enter{animation:viewIn .32s var(--ease)}
+@keyframes viewIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.view-enter>*{animation:viewIn .4s var(--ease) both}
+.view-enter>*:nth-child(2){animation-delay:.03s}.view-enter>*:nth-child(3){animation-delay:.06s}.view-enter>*:nth-child(4){animation-delay:.09s}.view-enter>*:nth-child(5){animation-delay:.12s}.view-enter>*:nth-child(n+6){animation-delay:.15s}
+button,.tl li,.row[data-act]{-webkit-tap-highlight-color:transparent}
+.btn,.qa,.choice,.now-t,.mtile,.snd,.vchip,.iconbtn{transition:transform .15s var(--ease),background-color .2s,border-color .2s,box-shadow .2s}
+.btn:active,.choice:active,.now-t:active,.mtile:active,.snd:active,.vchip:active,.iconbtn:active{transform:scale(.97)}
+.sec-top{justify-content:flex-end}
+.sec-top:empty{display:none}
+/* ícones */
+.ic{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;flex:none;background:color-mix(in srgb,var(--c,var(--accent)) 14%,transparent);color:var(--c,var(--accent))}
+.ic svg{width:20px;height:20px}
+.ic.lg{width:46px;height:46px;border-radius:15px}.ic.lg svg{width:24px;height:24px}
+.tl li{grid-template-columns:46px 36px minmax(0,1fr) auto;align-items:center;padding:8px 4px;border-bottom:0}
+.tl li .d{display:none}
+.tl .t{font-size:13px;color:var(--muted)}
+/* início */
+.now{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.now-t{position:relative;border:0;text-align:left;background:var(--surface);border-radius:var(--r-lg);box-shadow:var(--shadow);padding:14px 12px 12px;display:flex;flex-direction:column;gap:8px;cursor:pointer;color:var(--ink);overflow:hidden;min-height:138px}
+.now-t .lbl{font-size:12.5px;font-weight:700;color:var(--muted)}
+.now-t .val{font-family:var(--display);font-size:22px;font-weight:600;line-height:1.05;font-variant-numeric:tabular-nums}
+.now-t .sub{font-size:12px;color:var(--muted);line-height:1.25}
+.now-t .cta{margin-top:auto;font-size:12px;font-weight:700;color:var(--c)}
+.now-t.live{background:var(--c);color:var(--live-ink)}
+.now-t.live .lbl,.now-t.live .sub,.now-t.live .cta{color:inherit;opacity:.88}
+.now-t.live .ic{background:color-mix(in srgb,var(--live-ink) 20%,transparent);color:inherit}
+.now-t.live::after{content:"";position:absolute;top:14px;right:14px;width:9px;height:9px;border-radius:50%;background:currentColor;animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.7)}}
+@media (max-width:380px){.now-t .val{font-size:19px}.now{gap:8px}}
+.alerts{display:flex;flex-direction:column;gap:10px}
+.alert{display:flex;align-items:center;gap:12px;background:var(--surface);border-radius:16px;padding:12px 12px 12px 12px;box-shadow:var(--shadow)}
+.alert .tx{flex:1;min-width:0}
+.alert .tx b{display:block;font-size:14.5px}
+.alert .tx span{font-size:13px;color:var(--muted)}
+.alert .x{border:0;background:none;color:var(--muted);font-size:20px;cursor:pointer;padding:0 4px}
+.today{display:grid;grid-template-columns:auto 1fr 1fr;gap:14px;align-items:center}
+.ring text{font-family:var(--display);font-weight:600;fill:var(--ink)}
+.ring .rbg{stroke:var(--line)}
+.ring .rfg{transition:stroke-dashoffset .9s var(--ease)}
+.mini .v{font-family:var(--display);font-size:24px;font-weight:600;font-variant-numeric:tabular-nums}
+.mini .k{font-size:12.5px;color:var(--muted)}
+.phase{display:flex;align-items:center;gap:12px;cursor:pointer}
+.phase .bar{height:6px;border-radius:9px;background:var(--surface2);overflow:hidden;margin-top:6px}
+.phase .bar i{display:block;height:100%;background:var(--accent);border-radius:9px}
+.empty-hero{text-align:center;padding:26px 16px}
+.empty-hero svg{width:72px;height:72px;margin-bottom:6px}
+/* sheet */
+#modal .ov{animation:fadeIn .2s ease both}
+#modal .sheet{animation:sheetIn .32s var(--ease) both}
+#modal.closing .ov{animation:fadeOut .18s ease both}
+#modal.closing .sheet{animation:sheetOut .2s ease both}
+@keyframes fadeIn{from{opacity:0}}@keyframes fadeOut{to{opacity:0}}
+@keyframes sheetIn{from{transform:translateY(40px);opacity:0}}@keyframes sheetOut{to{transform:translateY(40px);opacity:0}}
+.sheet{border-radius:24px 24px 0 0}
+.sheet::before{content:"";display:block;width:40px;height:5px;border-radius:9px;background:var(--line);margin:-6px auto 12px}
+@media (min-width:720px){.sheet::before{display:none}}
+.grid-act{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.choice{border:0;background:var(--surface2);border-radius:18px;padding:14px 6px;font-size:13px;gap:8px}
+.choice i{display:none}
+/* menu */
+.mgroup{display:flex;flex-direction:column;gap:8px}
+.mgroup .label{padding-left:4px}
+.mtile{display:flex;align-items:center;gap:12px;background:var(--surface);border:0;border-radius:16px;box-shadow:var(--shadow);padding:12px;cursor:pointer;text-align:left;color:var(--ink);width:100%}
+.mtile .tx{flex:1;min-width:0}.mtile .tx b{display:block;font-size:15px}.mtile .tx span{font-size:13px;color:var(--muted)}
+.mtile .chev{color:var(--muted)}.mtile .chev svg{width:18px;height:18px}
+/* sons */
+.snd-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.snd{position:relative;border:0;background:var(--surface);box-shadow:var(--shadow);border-radius:var(--r-lg);padding:14px;text-align:left;cursor:pointer;color:var(--ink);display:flex;flex-direction:column;gap:10px;min-height:118px}
+.snd b{font-size:15px}.snd .d{font-size:12.5px;color:var(--muted)}
+.snd.on{background:var(--c);color:var(--live-ink)}.snd.on .d{color:inherit;opacity:.85}.snd.on .ic{background:color-mix(in srgb,var(--live-ink) 20%,transparent);color:inherit}
+.eq{position:absolute;top:16px;right:14px;display:flex;gap:3px;align-items:flex-end;height:16px}
+.eq i{width:3px;background:currentColor;border-radius:2px;animation:eq 1s ease-in-out infinite}
+.eq i:nth-child(2){animation-delay:.2s}.eq i:nth-child(3){animation-delay:.4s}
+@keyframes eq{0%,100%{height:4px}50%{height:16px}}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 14px;font-weight:700;font-size:13px;cursor:pointer;color:var(--muted)}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+#player{position:fixed;left:0;right:0;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px));z-index:24;padding:0 max(10px,env(safe-area-inset-right,0px)) 8px max(10px,env(safe-area-inset-left,0px));animation:viewIn .3s var(--ease)}
+#player .in{max-width:540px;margin:0 auto;display:flex;align-items:center;gap:10px;background:var(--ink);color:var(--bg);border-radius:18px;padding:8px 8px 8px 12px;box-shadow:0 10px 30px rgb(0 0 0 / .25)}
+#player .tx{flex:1;min-width:0;font-size:13px}#player .tx b{display:block;font-size:14px}
+#player .pb{width:40px;height:40px;border-radius:12px;border:0;background:rgb(255 255 255 / .14);color:inherit;display:grid;place-items:center;cursor:pointer}
+#player .pb svg{width:18px;height:18px}
+body.playing{padding-bottom:calc(var(--nav-h) + 80px + env(safe-area-inset-bottom,0px))}
+input[type=range]{width:100%;accent-color:var(--accent)}
+/* tutorial e boas-vindas */
+details.howto{background:var(--surface);border-radius:16px;box-shadow:var(--shadow);padding:0}
+details.howto summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:12px;padding:12px;font-weight:700}
+details.howto summary::-webkit-details-marker{display:none}
+details.howto summary::after{content:"";margin-left:auto;width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);transition:transform .2s}
+details.howto[open] summary::after{transform:rotate(-135deg)}
+details.howto ol{margin:0;padding:0 16px 14px 62px;font-size:14px;display:flex;flex-direction:column;gap:6px}
+#onb{position:fixed;inset:0;z-index:70;background:var(--bg);display:flex;flex-direction:column;padding:calc(20px + env(safe-area-inset-top,0px)) max(20px,env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) max(20px,env(safe-area-inset-left,0px));animation:fadeIn .3s ease}
+#onb .skip{align-self:flex-end;border:0;background:none;color:var(--muted);font-weight:700;cursor:pointer;font-size:14px}
+#onb .slide{flex:1;display:flex;flex-direction:column;justify-content:center;gap:14px;max-width:440px;margin:0 auto;width:100%;animation:viewIn .4s var(--ease)}
+#onb h2{font-size:28px;line-height:1.15}
+#onb p{color:var(--muted);font-size:16px;margin:0}
+#onb .art{display:flex;gap:10px;margin-bottom:8px}
+#onb .dots{display:flex;gap:6px;justify-content:center;margin:12px 0}
+#onb .dots i{width:7px;height:7px;border-radius:9px;background:var(--line);transition:width .3s var(--ease),background .3s}
+#onb .dots i.on{width:22px;background:var(--accent)}
+#onb .acts{display:flex;flex-direction:column;gap:8px;max-width:440px;margin:0 auto;width:100%}
+#onb .acts .btn{justify-content:center;padding:14px;font-size:16px;border-radius:14px}
+.switch{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.switch:last-child{border-bottom:0}
+.switch .tx{flex:1;font-size:14px}
+.switch input{appearance:none;-webkit-appearance:none;width:46px;height:28px;border-radius:99px;background:var(--line);position:relative;cursor:pointer;transition:background .2s;flex:none;margin:0}
+.switch input::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgb(0 0 0 / .3);transition:transform .25s var(--ease)}
+.switch input:checked{background:var(--accent)}.switch input:checked::after{transform:translateX(18px)}
+.toast{bottom:calc(var(--nav-h) + 24px + env(safe-area-inset-bottom,0px))!important;border-radius:14px}
+body.playing .toast{bottom:calc(var(--nav-h) + 96px + env(safe-area-inset-bottom,0px))!important}
+#modal:not([hidden])~.toast,body:has(#modal:not([hidden])) .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px))!important;z-index:80}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+.view-enter .rfg{animation:ringIn 1s var(--ease) both}@keyframes ringIn{from{stroke-dashoffset:var(--C)}}
 </style>
 </head>
 <body>
@@ -253,6 +395,7 @@ ol.steps{margin:6px 0 0;padding-left:20px}ol.steps li{margin:4px 0}
   <div class="wrap"><div class="brand"><svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="18" fill="#2B7A70"/></svg>Diário do Bebê</div><div class="top"><div class="who-baby"><div class="age">Carregando os dados da família…</div></div></div></div>
 </div>
 <div id="modal" hidden></div>
+<div id="player" hidden></div>
 <div id="toast" class="toast" hidden></div>
 
 <script src="vendor/supabase.js"></script>
@@ -453,49 +596,54 @@ function evText(e){
 }
 function timeline(list,emptyMsg){
  if(!list.length)return`<div class="empty">${emptyMsg}</div>`;
- return`<ul class="tl">${list.map(e=>{const x=evText(e);const extra=e.note?` · ${esc(e.note)}`:'';return`<li data-act="ev" data-id="${e.id}" style="--c:${EVC[e.type]}"><span class="t">${fmtT(e.start)}</span><span class="d"></span><span><div class="ttl">${esc(x.t)}</div>${x.d||extra?`<div class="ds">${esc(x.d)}${extra}</div>`:''}</span><span class="by">${esc(e.by||'')}</span></li>`}).join('')}</ul>`;
+ return`<ul class="tl">${list.map(e=>{const x=evText(e);const extra=e.note?` · ${esc(e.note)}`:'';return`<li data-act="ev" data-id="${e.id}" style="--c:${EVC[e.type]}"><span class="t">${fmtT(e.start)}</span><span class="ic" style="--c:${EVC[e.type]}">${ic(EVI[e.type])}</span><span><div class="ttl">${esc(x.t)}</div>${x.d||extra?`<div class="ds">${esc(x.d)}${extra}</div>`:''}</span><span class="by">${esc(e.by||'')}</span></li>`}).join('')}</ul>`;
 }
 
 /* ============ ícones ============ */
-const IC={
- moon:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>',
- sun:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
- bottle:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2h4M10.5 2v3l-2 2.5V20a2 2 0 0 0 2 2h3a2 2 0 0 0 2-2V7.5l-2-2.5V2"/><path d="M8.5 12h7M8.5 16h7"/></svg>',
- diaper:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18v4a9 9 0 0 1-9 9 9 9 0 0 1-9-9z"/><path d="M7 6v3M17 6v3"/></svg>',
- heart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v12M6 12h12"/><rect x="3" y="3" width="18" height="18" rx="5"/></svg>',
- plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>'
+const ICP={
+ home:'<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+ list:'<path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4.5" cy="6" r="1.3"/><circle cx="4.5" cy="12" r="1.3"/><circle cx="4.5" cy="18" r="1.3"/>',
+ plus:'<path d="M12 5v14M5 12h14"/>',
+ music:'<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
+ grid:'<rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/>',
+ moon:'<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
+ sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+ bottle:'<path d="M10 2h4M10.5 2v3l-2 2.5V20a2 2 0 0 0 2 2h3a2 2 0 0 0 2-2V7.5l-2-2.5V2"/><path d="M8.5 12h7M8.5 16h7"/>',
+ diaper:'<path d="M3 6h18v4a9 9 0 0 1-18 0z"/><path d="M7 6v3M17 6v3"/>',
+ pill:'<path d="M10.5 20.5a5 5 0 0 1-7-7l6-6a5 5 0 0 1 7 7z"/><path d="M8.5 8.5l7 7"/>',
+ thermo:'<path d="M14 14.8V4a2 2 0 0 0-4 0v10.8a4 4 0 1 0 4 0z"/>',
+ drop:'<path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/>',
+ note:'<path d="M5 3h10l4 4v14H5z"/><path d="M9 12h6M9 16h6"/>',
+ growth:'<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
+ flask:'<path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.7 3h10.6a2 2 0 0 0 1.7-3l-5-9V3"/><path d="M7.5 15h9"/>',
+ cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+ star:'<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/>',
+ box:'<path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/>',
+ syringe:'<path d="M18 2l4 4M20 4l-4 4M14 6l4 4M15.5 8.5L8 16l-2-2 7.5-7.5M6 14l-3 3M8 16l-1 1"/>',
+ sprout:'<path d="M12 21v-9"/><path d="M12 12C12 7 8.5 4 4 4c0 5 3.5 8 8 8zM12 14c0-4 3-7 8-7 0 4-3 7-8 7z"/>',
+ book:'<path d="M2 5h7a3 3 0 0 1 3 3v12a2 2 0 0 0-2-2H2zM22 5h-7a3 3 0 0 0-3 3v12a2 2 0 0 1 2-2h8z"/>',
+ gear:'<circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/>',
+ bell:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21a2 2 0 0 0 4 0"/>',
+ heart:'<path d="M12 20.5s-8-5-8-10.7A4.4 4.4 0 0 1 12 7.2a4.4 4.4 0 0 1 8 2.6c0 5.7-8 10.7-8 10.7z"/>',
+ wave:'<path d="M2 10c2.5-3 4.5-3 7 0s4.5 3 7 0 4.5-3 6 0"/><path d="M2 16c2.5-3 4.5-3 7 0s4.5 3 7 0 4.5-3 6 0"/>',
+ rain:'<path d="M7 15a4 4 0 0 1-.5-8 5.5 5.5 0 0 1 10.6 1.5A3.5 3.5 0 0 1 17 15z"/><path d="M8 18l-1 3M12 18l-1 3M16 18l-1 3"/>',
+ fan:'<circle cx="12" cy="12" r="1.8"/><path d="M12 10.2c0-4 .8-7 3.5-7 2 0 2.8 2 1 3.8zM13.8 12c4 0 7 .8 7 3.5 0 2-2 2.8-3.8 1zM12 13.8c0 4-.8 7-3.5 7-2 0-2.8-2-1-3.8zM10.2 12c-4 0-7-.8-7-3.5 0-2 2-2.8 3.8-1z"/>',
+ noise:'<path d="M4 10v4M8 7v10M12 4v16M16 7v10M20 10v4"/>',
+ wind:'<path d="M3 8h10a3 3 0 1 0-3-3M3 12h15a3 3 0 1 1-3 3M3 16h7"/>',
+ play:'<path d="M7 4.5v15l12.5-7.5z" fill="currentColor"/>',
+ pause:'<path d="M7 4h3.5v16H7zM13.5 4H17v16h-3.5z" fill="currentColor"/>',
+ x:'<path d="M6 6l12 12M18 6L6 18"/>',
+ back:'<path d="M15 5l-7 7 7 7"/>',
+ chev:'<path d="M9 5l7 7-7 7"/>',
+ bag:'<path d="M5 8h14l-1 13H6z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>',
+ users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="17.5" cy="9" r="2.5"/><path d="M16 14.6a5 5 0 0 1 6 4.9"/>',
+ cake:'<path d="M4 21h16v-8H4zM4 16.5c2 1.5 4 1.5 6 0s4-1.5 6 0 4 1.5 4 0M12 13V9.5"/><path d="M12 7c-1-1-1-2.2 0-4 1 1.8 1 3 0 4z"/>'
 };
+const ic=n=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICP[n]||''}</svg>`;
+const IC={moon:ic('moon'),sun:ic('sun'),bottle:ic('bottle'),diaper:ic('diaper'),heart:ic('heart'),plus:ic('plus')};
+const EVI={sleep:'moon',feed:'bottle',diaper:'diaper',med:'pill',temp:'thermo',bath:'drop',note:'note'};
 
-/* ============ render ============ */
-const TABS=[['hoje','Hoje'],['registros','Registros'],['estoque','Estoque'],['crescimento','Crescimento'],['agenda','Agenda'],['exames','Exames'],['saude','Saúde'],['fases','Fase e marcos'],['ajustes','Ajustes']];
-function render(){
- const app=$('#app');
- if(AUTH==='loading'){app.innerHTML=`<div class="wrap">${BRAND}<div class="top"><div class="who-baby"><div class="age">Abrindo…</div></div></div></div>`;return}
- if(!ME){app.innerHTML=loginView();return}
- if(!FAM){app.innerHTML=familyView();return}
- if(S.cfg===undefined){app.innerHTML=`<div class="wrap">${BRAND}<div class="top"><div class="who-baby"><div class="age">${S.stale?'Os dados ainda não responderam. Verifique a conexão.':'Carregando os dados da família…'}</div></div></div></div>`;return}
- if(S.cfg===null){app.innerHTML=setupView();return}
- const a=age(),sl=ongoing('sleep'),fd=ongoing('feed'),dst=diaperStats();
- const scrollY=window.scrollY;
- const banner=S.stale?`<div class="banner">Não foi possível alcançar os dados agora. O que aparece pode estar desatualizado.</div>`:'';
- const alerts={estoque:dst.st==='bad'||dst.st==='warn'||shopping().length>0,saude:VAX.some(v=>vaxStatus(v).s==='late'),exames:S.exams.some(e=>e.status==='pedido'&&!e.date)};
- app.innerHTML=`
- <div class="wrap">${BRAND}<div class="top">
-  <div class="avatar">${esc((S.cfg.name||'B')[0].toUpperCase())}</div>
-  <div class="who-baby"><h1>${esc(S.cfg.name||'Bebê')}</h1><div class="age"><b>${esc(ageText(a))}</b>${a&&a.days>=0?` · ${Math.floor(a.days/7)} semanas · ${esc(phaseOf(a).name)}`:''}</div></div>
-  <div class="whoami">Você: <b>${esc(WHO||'—')}</b></div>
- </div>
- <div class="quick">
-  ${sl?`<button class="qa live" style="--c:var(--sleep)" data-act="sleepToggle">${IC.sun}Acordou<span class="sub num">dormindo ${fmtDur(Date.now()-sl.start)}</span></button>`:`<button class="qa" style="color:var(--sleep)" data-act="sleepToggle">${IC.moon}<span style="color:var(--ink)">Dormiu</span></button>`}
-  ${fd?`<button class="qa live" style="--c:var(--feed)" data-act="feedStop">${IC.bottle}Encerrar mamada<span class="sub num">${fmtDur(Date.now()-fd.start)} · ${SIDE[fd.side]||''}</span></button>`:`<button class="qa" style="color:var(--feed)" data-act="feedOpen">${IC.bottle}<span style="color:var(--ink)">Mamada</span></button>`}
-  <button class="qa" style="color:var(--diaper)" data-act="diaperOpen">${IC.diaper}<span style="color:var(--ink)">Fralda</span></button>
-  <button class="qa" style="color:var(--health)" data-act="healthOpen">${IC.heart}<span style="color:var(--ink)">Saúde</span></button>
-  <button class="qa" style="color:var(--muted)" data-act="moreOpen">${IC.plus}<span style="color:var(--ink)">Mais</span></button>
- </div></div>
- <div class="tabsbar"><div class="wrap"><nav class="tabs" role="tablist">${TABS.map(([k,l])=>`<button class="tab" role="tab" aria-selected="${S.tab===k}" data-act="tab" data-id="${k}">${l}${alerts[k]?'<span class="dot" aria-label="atenção"></span>':''}</button>`).join('')}</nav></div></div>
- <main class="wrap">${banner}${(VIEWS[S.tab]||VIEWS.hoje)()}</main>`;
- window.scrollTo(0,scrollY);
-}
+
 function seg(name,opts,val,id){return`<div class="seg" role="radiogroup"${id?` id="${id}"`:''}>${opts.map(([v,l])=>`<label><input type="radio" name="${name}" value="${esc(v)}"${String(val)===String(v)?' checked':''}><span>${l}</span></label>`).join('')}</div>`}
 const fld=(label,inner)=>`<label class="fld"><span>${label}</span>${inner}</label>`;
 
@@ -561,7 +709,7 @@ VIEWS.hoje=()=>{
    <div class="stat"><div class="v">${ds.list.filter(e=>e.type==='med').length}</div><div class="k">remédios dados</div></div>
   </div></div>
  <div class="grid g2">
-  <div class="card"><div class="card-h"><h2>Linha do tempo</h2><button class="linkbtn" data-act="tab" data-id="registros">Ver outros dias</button></div>
+  <div class="card"><div class="card-h"><h2>Linha do tempo</h2><button class="linkbtn" data-act="tab" data-id="diario">Ver outros dias</button></div>
    ${timeline(ds.list,'Nada registrado hoje ainda. Use os botões <b>Dormiu</b>, <b>Mamada</b> ou <b>Fralda</b> para começar.')}</div>
   <div class="grid" style="align-content:start">
    <div class="card"><div class="card-h"><h2>Próximos compromissos</h2><button class="linkbtn" data-act="agAdd">Adicionar</button></div>
@@ -579,7 +727,7 @@ VIEWS.registros=()=>{
  const lbl=days.map(d=>WD[new Date(d).getDay()].slice(0,3));const a=age(),ph=a?phaseOf(a):null;
  const avgSleep=st.reduce((s,x)=>s+x.sleep,0)/7/HR;
  return`
- <div class="sec-h"><h2>Registros</h2>
+ <div class="sec-h sec-top">
   <div style="display:flex;gap:6px;align-items:center"><button class="iconbtn" data-act="dayPrev" aria-label="Dia anterior">‹</button>
   <input type="date" id="dayPick" value="${isoDate(t0)}" max="${isoDate(Date.now())}" style="border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:6px 8px">
   <button class="iconbtn" data-act="dayNext" aria-label="Próximo dia"${isToday?' disabled':''}>›</button>${isToday?'':'<button class="btn sm" data-act="dayToday">Hoje</button>'}</div></div>
@@ -589,7 +737,7 @@ VIEWS.registros=()=>{
   <div class="stat"><div class="v">${ds.diapers}</div><div class="k">fraldas · ${ds.xixi} xixi, ${ds.coco} cocô</div></div>
   <div class="stat"><div class="v">${ds.list.filter(e=>e.type==='med'||e.type==='temp').length}</div><div class="k">registros de saúde</div></div>
  </div>
- <div class="card"><div class="card-h"><h2>${WD[new Date(t0).getDay()]}, ${fmtDY(t0)}</h2><button class="btn sm" data-act="noteAdd">Adicionar anotação</button></div>
+ <div class="card"><div class="card-h"><h2>${WD[new Date(t0).getDay()]}, ${fmtDY(t0)}</h2></div>
   ${timeline(ds.list,'Nenhum registro neste dia.')}</div>
  <div class="sec-h"><h2>Últimos 7 dias</h2></div>
  <div class="grid g3">
@@ -617,7 +765,7 @@ VIEWS.estoque=()=>{
  const groups=INV_CATS.map(([k,l])=>[k,l,S.inv.filter(i=>(i.cat||'outro')===k).sort((a,b)=>a.name.localeCompare(b.name))]).filter(g=>g[2].length&&g[0]!=='fralda');
  const pct=dst.days!=null?Math.min(100,dst.days/14*100):0;
  return`
- <div class="sec-h"><h2>Estoque</h2><button class="btn primary" data-act="invAdd">Adicionar item</button></div>
+ <div class="sec-h sec-top"><button class="btn primary" data-act="invAdd">Adicionar item</button></div>
  <div class="card"><div class="card-h"><h2>Fraldas</h2><span class="pill ${dst.st}">${dst.label}</span></div>
   <div class="stats" style="margin-bottom:14px">
    <div class="stat"><div class="v">${dst.total}</div><div class="k">em casa</div></div>
@@ -644,7 +792,7 @@ VIEWS.crescimento=()=>{
  const diff=(k)=>{const arr=g.filter(x=>x[k]);if(arr.length<2)return'';const a2=arr[arr.length-1],a1=arr[arr.length-2];const d=a2[k]-a1[k];return`${d>=0?'+':''}${num(d,k==='w'?2:1)} desde ${fmtD(dateOnly(a1.date))}`};
  const boy=S.cfg.sex!=='f';
  return`
- <div class="sec-h"><h2>Crescimento</h2><button class="btn primary" data-act="growthAdd">Nova medida</button></div>
+ <div class="sec-h sec-top"><button class="btn primary" data-act="growthAdd">Nova medida</button></div>
  <div class="grid g3">
   <div class="card tile" style="--c:var(--growth)"><div class="label">Peso</div><div class="big">${lastW?num(lastW.w,2)+' kg':'—'}</div><div class="sub">${lastW?diff('w')||'em '+fmtDY(dateOnly(lastW.date)):'sem medidas'}</div></div>
   <div class="card tile" style="--c:var(--growth)"><div class="label">Comprimento</div><div class="big">${lastL?num(lastL.l)+' cm':'—'}</div><div class="sub">${lastL?diff('l')||'em '+fmtDY(dateOnly(lastL.date)):'sem medidas'}</div></div>
@@ -692,7 +840,7 @@ VIEWS.agenda=()=>{
  const byMonth={};up.forEach(a=>{const k=a.date.slice(0,7);(byMonth[k]=byMonth[k]||[]).push(a)});
  const vsoon=VAX.filter(v=>['late','soon'].includes(vaxStatus(v).s));
  return`
- <div class="sec-h"><h2>Agenda</h2><button class="btn primary" data-act="agAdd">Novo compromisso</button></div>
+ <div class="sec-h sec-top"><button class="btn primary" data-act="agAdd">Novo compromisso</button></div>
  ${vsoon.length?`<div class="card"><div class="card-h"><h2>Vacinas para agendar</h2><button class="linkbtn" data-act="tab" data-id="saude">Ver caderneta</button></div><div class="vlist">${vsoon.map(v=>{const st=vaxStatus(v);return`<button class="vchip ${st.s}" data-act="vax" data-id="${v[0]}"><b>${esc(v[1])}</b>${esc(v[3])} · ${esc(st.l)}</button>`}).join('')}</div></div>`:''}
  ${Object.keys(byMonth).length?Object.entries(byMonth).map(([k,list])=>`<div class="card"><div class="card-h"><h2>${MOF[+k.slice(5)-1]} de ${k.slice(0,4)}</h2></div><div class="rows">${list.map(agRow).join('')}</div></div>`).join(''):`<div class="empty">Nenhum compromisso pela frente. Marque consultas do pediatra, vacinas, exames e o que mais precisar lembrar.</div>`}
  ${past.length?`<details class="card"><summary style="cursor:pointer;font-weight:700">Anteriores e concluídos (${past.length})</summary><div class="rows" style="margin-top:8px">${past.map(agRow).join('')}</div></details>`:''}`;
@@ -715,7 +863,7 @@ VIEWS.exames=()=>{
  const done=by('resultado').sort((a,b)=>(b.resultDate||b.date||'').localeCompare(a.resultDate||a.date||''));
  const alt=done.filter(e=>e.outcome==='alterado').length;
  return`
- <div class="sec-h"><h2>Exames</h2><button class="btn primary" data-act="exAdd">Novo exame</button></div>
+ <div class="sec-h sec-top"><button class="btn primary" data-act="exAdd">Novo exame</button></div>
  <div class="stats">
   <div class="stat"><div class="v">${pend.length}</div><div class="k">para fazer</div></div>
   <div class="stat"><div class="v">${wait.length}</div><div class="k">aguardando resultado</div></div>
@@ -739,14 +887,14 @@ VIEWS.saude=()=>{
  const hl=allEv().filter(e=>e.type==='med'||e.type==='temp').slice(0,12);
  const whenL=m=>m===0?'Ao nascer':m<12?m+' meses':m===12?'12 meses':m<24?m+' meses':(m/12)+' anos';
  return`
- <div class="sec-h"><h2>Saúde</h2><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-act="medAdd">Registrar remédio</button><button class="btn" data-act="tempAdd">Registrar temperatura</button></div></div>
+ <div class="sec-h sec-top"><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-act="medAdd">Registrar remédio</button><button class="btn" data-act="tempAdd">Registrar temperatura</button></div></div>
  <div class="grid g2">
   <div class="card"><div class="card-h"><h2>Ficha do bebê</h2><button class="linkbtn" data-act="tab" data-id="ajustes">Editar</button></div>
    <div class="rows">
     ${[['Tipo sanguíneo',c.blood],['Alergias',c.allergies],['Pediatra',c.pedName],['Telefone do pediatra',c.pedPhone],['Plano de saúde',c.plan],['Carteirinha / SUS',c.card]].map(([k,v])=>`<div class="row"><div class="main"><div class="small muted">${k}</div><div class="ttl" style="user-select:all">${v?esc(v):'<span class="muted" style="font-weight:400">não informado</span>'}</div></div></div>`).join('')}
    </div></div>
   <div class="card"><div class="card-h"><h2>Remédios e temperatura</h2></div>
-   ${hl.length?`<ul class="tl">${hl.map(e=>{const x=evText(e);return`<li data-act="ev" data-id="${e.id}" style="--c:${EVC[e.type]}"><span class="t">${fmtD(e.start)}</span><span class="d"></span><span><div class="ttl">${esc(x.t)}</div><div class="ds">${fmtT(e.start)}${x.d?' · '+esc(x.d):''}${e.note?' · '+esc(e.note):''}</div></span><span class="by">${esc(e.by||'')}</span></li>`}).join('')}</ul>`:`<div class="empty">Nenhum remédio ou temperatura registrado. Útil para mostrar ao pediatra o que foi dado e quando.</div>`}</div>
+   ${hl.length?`<ul class="tl">${hl.map(e=>{const x=evText(e);return`<li data-act="ev" data-id="${e.id}" style="--c:${EVC[e.type]}"><span class="t">${fmtD(e.start)}</span><span class="ic" style="--c:${EVC[e.type]}">${ic(EVI[e.type])}</span><span><div class="ttl">${esc(x.t)}</div><div class="ds">${fmtT(e.start)}${x.d?' · '+esc(x.d):''}${e.note?' · '+esc(e.note):''}</div></span><span class="by">${esc(e.by||'')}</span></li>`}).join('')}</ul>`:`<div class="empty">Nenhum remédio ou temperatura registrado. Útil para mostrar ao pediatra o que foi dado e quando.</div>`}</div>
  </div>
  <div class="card"><div class="card-h"><h2>Caderneta de vacinação</h2><span class="small muted">${doneN} de ${VAX.length} aplicadas${lateN?` · <b style="color:var(--bad)">${lateN} atrasada${lateN>1?'s':''}</b>`:''}</span></div>
   <div class="hint" style="margin-bottom:6px">Calendário infantil do SUS. Toque numa vacina para marcar como aplicada. Confira sempre com a caderneta e o pediatra, porque o calendário muda com o tempo.</div>
@@ -759,7 +907,7 @@ VIEWS.fases=()=>{
  const a=age();if(!a)return'';const ph=phaseOf(a),ms=[...S.ms].sort((x,y)=>y.date.localeCompare(x.date));
  const nextAt=ph.to<999?new Date(new Date(S.cfg.birth+'T12:00').setMonth(new Date(S.cfg.birth+'T12:00').getMonth()+ph.to)).getTime():null;
  return`
- <div class="sec-h"><h2>Fase e marcos</h2></div>
+ <div class="sec-h sec-top"></div>
  <div class="card phase-hero">
   <div><div class="label">Fase atual · ${esc(ageText(a))}</div><h2 style="font-size:28px;margin:4px 0 8px">${esc(ph.name)}</h2>
    ${nextAt?`<div class="muted small">Próxima fase em ${Math.max(0,Math.ceil((nextAt-Date.now())/DAY))} dias</div>`:''}
@@ -776,7 +924,7 @@ VIEWS.fases=()=>{
 
 /* ---------- Ajustes ---------- */
 VIEWS.ajustes=()=>{const c=S.cfg,fr=S.inv.filter(i=>i.cat==='fralda');return`
- <div class="sec-h"><h2>Ajustes</h2></div>
+ <div class="sec-h sec-top"></div>
  <div class="grid g2">
  <form class="card" id="cfgForm" style="display:flex;flex-direction:column;gap:14px"><h2>Dados do bebê</h2>
   ${fld('Nome',`<input name="name" id="c-name" value="${esc(c.name)}" required>`)}
@@ -788,7 +936,7 @@ VIEWS.ajustes=()=>{const c=S.cfg,fr=S.inv.filter(i=>i.cat==='fralda');return`
   <div><button class="btn primary" type="submit">Salvar dados</button></div>
  </form>
  <div class="grid" style="align-content:start">
-  <div class="card"><h2>Notificações neste aparelho</h2>${pushCard()}</div>
+  <div class="card"><h2>Avisos neste aparelho</h2>${pushCard()}</div>
   <div class="card"><h2>Família</h2>
    <p class="small">Para sua esposa usar junto, ela abre o app, cria a conta dela e entra com este código:</p>
    <div class="code">${esc(INVITE)}</div>
@@ -804,13 +952,14 @@ VIEWS.ajustes=()=>{const c=S.cfg,fr=S.inv.filter(i=>i.cat==='fralda');return`
 
 /* ============ modal ============ */
 let M=null;
-function openModal({title,body,onSave,onDelete,saveLabel='Salvar',mount,noFooter}){
+let MCT=null;
+function openModal({title,body,onSave,onDelete,saveLabel='Salvar',mount,noFooter}){clearTimeout(MCT);$('#modal').classList.remove('closing');
  $('#modal').innerHTML=`<div class="ov" data-act="mclose"></div><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="mt"><header><h3 id="mt">${title}</h3><button class="x" type="button" data-act="mclose" aria-label="Fechar">×</button></header>
  <form id="mf" novalidate>${body}${noFooter?'':`<footer>${onDelete?'<button type="button" class="btn danger" data-act="mdel">Apagar</button>':''}<span class="sp"></span><button type="button" class="btn ghost" data-act="mclose">Cancelar</button>${onSave?`<button class="btn primary" type="submit">${saveLabel}</button>`:''}</footer>`}</form></div>`;
  M={onSave,onDelete};$('#modal').hidden=false;const f=$('#mf');mount&&mount(f);
  const first=f.querySelector('input:not([type=radio]):not([type=hidden]),select,textarea');if(first&&matchMedia('(min-width:720px)').matches)first.focus();
 }
-function closeModal(){$('#modal').hidden=true;$('#modal').innerHTML='';M=null}
+function closeModal(){const m=$('#modal');M=null;if(m.hidden)return;m.classList.add('closing');clearTimeout(MCT);MCT=setTimeout(()=>{m.hidden=true;m.innerHTML='';m.classList.remove('closing')},190)}
 const fdata=f=>Object.fromEntries(new FormData(f));
 
 /* ---------- formulários de eventos ---------- */
@@ -829,6 +978,7 @@ function eventForm(ev,isNew){
   <div data-show="solido" style="display:flex;flex-direction:column;gap:14px">${fld('O que comeu',`<input name="food" id="f-food" value="${esc(ev.food||'')}" placeholder="Ex.: papinha de abóbora">`)}${seg('accept',[['bem','Comeu bem'],['pouco','Comeu pouco'],['recusou','Recusou']],ev.accept||'bem')}</div>`;
  if(t==='diaper')h+=diaperSelect(isNew?S.cfg.diaperItem:ev.itemId);
  if(t==='med'){const names=[...new Set(allEv().filter(e=>e.type==='med').map(e=>e.name))];h+=`<div class="frow">${fld('Remédio',`<input name="name" id="f-name" list="medlist" value="${esc(ev.name||'')}" required placeholder="Ex.: Vitamina D">`)}${fld('Dose',`<input name="dose" id="f-dose" value="${esc(ev.dose||'')}" placeholder="Ex.: 2 gotas">`)}</div><datalist id="medlist">${names.map(n=>`<option value="${esc(n)}">`).join('')}</datalist>`}
+ if(t==='med')h+=medRemind(ev);
  if(t==='temp')h+=fld('Temperatura (°C)',`<input name="value" id="f-val" inputmode="decimal" value="${ev.value!=null?String(ev.value).replace('.',','):''}" required placeholder="Ex.: 36,8">`);
  if(t==='note')h+=fld('Anotação',`<textarea name="text" id="f-text" required>${esc(ev.text||'')}</textarea>`);
  if(t!=='note')h+=fld('Observação (opcional)',`<input name="note" id="f-note" value="${esc(ev.note||'')}">`);
@@ -840,7 +990,7 @@ function evFromForm(fd,t){
  if(t==='feed'){o.kind=fd.kind;if(fd.kind==='peito'){o.side=fd.side;o.end=fromLocalInput(fd.end)}else{o.end=o.start;o.side=undefined}
   if(fd.kind==='mamadeira'){o.ml=+fd.ml||0;o.milk=fd.milk}if(fd.kind==='solido'){o.food=(fd.food||'').trim();o.accept=fd.accept}}
  if(t==='diaper'){o.kind=fd.kind;o.itemId=fd.itemId||undefined}
- if(t==='med'){o.name=(fd.name||'').trim();o.dose=(fd.dose||'').trim();if(!o.name){toast('Informe o nome do remédio.',true);return null}}
+ if(t==='med'){o.name=(fd.name||'').trim();o.dose=(fd.dose||'').trim();o.remindEvery=+fd.remindEvery||undefined;o.remindUntil=o.remindEvery?o.start+(+fd.remindDays||3)*DAY:undefined;if(!o.name){toast('Informe o nome do remédio.',true);return null}}
  if(t==='temp'){o.value=parseFloat(String(fd.value).replace(',','.'));if(!(o.value>30&&o.value<45)){toast('Informe uma temperatura válida, como 36,8.',true);return null}}
  if(t==='note'){o.text=(fd.text||'').trim();if(!o.text){toast('Escreva a anotação.',true);return null}}
  if(o.end!=null&&o.end<o.start){toast('O fim precisa ser depois do início.',true);return null}
@@ -856,14 +1006,14 @@ function openEventForm(ev,isNew){
 
 /* ============ ações ============ */
 const A={};
-A.tab=id=>{S.tab=id;lsSet('bebe-tab',id);try{history.replaceState(null,'','#'+id)}catch(e){}render();window.scrollTo(0,0)};
+A.tab=id=>{id=pageOf(id);if(M)closeModal();S.tab=id;lsSet('bebe-tab',id);try{history.replaceState(null,'','#'+id)}catch(e){}render();window.scrollTo(0,0)};
 A.sleepToggle=async()=>{const sl=ongoing('sleep');if(sl){await updateEvent(sl,{end:Date.now()});toast('Acordou · dormiu '+fmtDur(Date.now()-sl.start))}else{await addEvent({type:'sleep',start:Date.now(),end:null});toast('Sono iniciado')}};
 A.sleepPast=()=>openEventForm({type:'sleep',start:Date.now()-HR,end:Date.now()},true);
 A.feedOpen=()=>openEventForm({type:'feed',kind:'peito',start:Date.now()-15*MIN,end:Date.now()},true);
 A.feedStop=async()=>{const f=ongoing('feed');if(f){await updateEvent(f,{end:Date.now()});toast('Mamada de '+fmtDur(Date.now()-f.start))}};
 A.feedTimer=async()=>{const f=$('#mf');const side=f.querySelector('input[name=side]:checked')?.value||'E';closeModal();await addEvent({type:'feed',kind:'peito',side,start:Date.now(),end:null});toast('Mamada iniciada · lado '+SIDE[side])};
 A.diaperOpen=()=>openModal({title:'Troca de fralda',noFooter:true,body:`
- <div class="choices">${[['xixi','Xixi','var(--diaper)'],['coco','Cocô','var(--feed)'],['ambos','Xixi e cocô','var(--sleep)'],['seca','Seca','var(--other)']].map(([k,l,c])=>`<button type="button" class="choice" style="--c:${c}" data-act="diaperRec" data-id="${k}"><i></i>${l}</button>`).join('')}</div>
+ <div class="choices">${[['xixi','Xixi','var(--diaper)'],['coco','Cocô','var(--feed)'],['ambos','Xixi e cocô','var(--sleep)'],['seca','Seca','var(--other)']].map(([k,l,c])=>`<button type="button" class="choice" style="--c:${c}" data-act="diaperRec" data-id="${k}"><span class="ic lg" style="--c:${c}">${ic('diaper')}</span>${l}</button>`).join('')}</div>
  ${fld('Horário',`<input type="datetime-local" name="start" id="f-start" value="${toLocalInput(Date.now())}">`)}${diaperSelect(S.cfg.diaperItem)}
  <div class="hint">Toque no tipo para registrar. ${S.inv.some(i=>i.cat==='fralda')?'A fralda é descontada do estoque.':'Cadastre as fraldas no Estoque para o desconto automático.'}</div>`});
 A.diaperRec=async kind=>{const f=$('#mf');const start=fromLocalInput(f.querySelector('[name=start]').value)||Date.now();const sel=f.querySelector('[name=itemId]');const itemId=(sel?sel.value:S.cfg.diaperItem)||undefined;closeModal();await addEvent({type:'diaper',kind,start,itemId});const d=diaperStats();toast('Fralda registrada'+(d.items.length?' · restam '+d.total:''))};
@@ -880,7 +1030,7 @@ A.moreOpen=()=>openModal({title:'Registrar',noFooter:true,body:`<div class="choi
  <button type="button" class="choice" style="--c:var(--health)" data-act="exAdd"><i></i>Exame</button>
  <button type="button" class="choice" style="--c:var(--feed)" data-act="msAdd"><i></i>Primeira vez</button></div>`});
 A.bathAdd=async()=>{closeModal();await addEvent({type:'bath',start:Date.now()});toast('Banho registrado')};
-A.noteAdd=()=>openEventForm({type:'note',start:S.tab==='registros'&&S.day!==dayStart(Date.now())?S.day+12*HR:Date.now()},true);
+A.noteAdd=()=>openEventForm({type:'note',start:S.tab==='diario'&&S.day!==dayStart(Date.now())?S.day+12*HR:Date.now()},true);
 A.ev=id=>{const e=allEv().find(x=>x.id===id);if(e)openEventForm(e,false)};
 A.dayPrev=()=>setDay(addDays(S.day,-1));A.dayNext=()=>setDay(Math.min(dayStart(Date.now()),addDays(S.day,1)));A.dayToday=()=>setDay(dayStart(Date.now()));
 function setDay(t){S.day=dayStart(t);const ym=ymOf(S.day),cur=ymOf(Date.now());S.hist=(ym===cur||ym===prevYm(cur))?null:ym;subMonths();render()}
@@ -986,17 +1136,17 @@ function b64u(s){const p='='.repeat((4-s.length%4)%4);const b=atob((s+p).replace
 async function checkPush(){
  if(!('serviceWorker' in navigator)||!('PushManager' in window)||!('Notification' in window)){PUSH=isIOS&&!standalone?'ios-install':'unsupported';return render()}
  if(Notification.permission==='denied'){PUSH='denied';return render()}
- try{const reg=await navigator.serviceWorker.ready;const sub=await reg.pushManager.getSubscription();PUSH=sub?'on':'off';
-  if(sub&&FAM)await sb.from('push_subs').upsert({endpoint:sub.endpoint,family_id:FAM,user_id:ME.id,sub:sub.toJSON()})}catch(e){PUSH='off'}
+ try{const reg=await navigator.serviceWorker.ready;const sub=await reg.pushManager.getSubscription();PUSH=sub?'on':'off';SUB_EP=sub?sub.endpoint:null;
+  if(sub&&FAM){await sb.from('push_subs').upsert({endpoint:sub.endpoint,family_id:FAM,user_id:ME.id,sub:sub.toJSON()});const{data:pr}=await sb.from('push_subs').select('prefs').eq('endpoint',sub.endpoint).maybeSingle();MYPREFS=pr?.prefs||{}}}catch(e){PUSH='off'}
  render();
 }
 function pushCard(){
- const what='<p class="small muted">Avisos de fralda acabando, consulta ou exame (na véspera e 2 h antes), vacina chegando ou atrasada e resultado de exame pendente.</p>';
- if(PUSH==='on')return what+'<p class="small"><span class="pill ok">Ativadas</span></p><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn sm" data-act="pushTest">Enviar um teste</button><button class="btn sm ghost" data-act="pushOff">Desativar</button></div>';
- if(PUSH==='off')return what+'<button class="btn primary" data-act="pushOn">Ativar notificações</button>';
- if(PUSH==='ios-install')return what+'<p class="small">No iPhone, primeiro instale o app: no Safari, toque em <b>Compartilhar</b> e em <b>Adicionar à Tela de Início</b>. Depois abra pelo ícone e volte aqui.</p>';
- if(PUSH==='denied')return what+'<p class="small">As notificações foram bloqueadas neste aparelho. Libere nas configurações do navegador ou do celular, para este app, e recarregue.</p>';
- if(PUSH==='unsupported')return what+'<p class="small">Este navegador não recebe notificações. Use o Chrome no Android ou o app instalado no iPhone.</p>';
+ if(PUSH==='on')return`<p class="small" style="margin-top:0"><span class="pill ok">Ativados neste aparelho</span></p><div>${PREFS.map(([k,l])=>`<label class="switch"><span class="tx">${l}</span><input type="checkbox" data-pref="${k}"${prefOn(k)?' checked':''}></label>${k==='mamada'&&prefOn('mamada')?`<label class="switch"><span class="tx muted">Avisar depois de</span><select data-prefh="1" style="border:1px solid var(--line);border-radius:9px;padding:6px;background:var(--surface2)">${[2,3,4].map(h=>`<option value="${h}"${(MYPREFS.mamadaH||3)===h?' selected':''}>${h} horas</option>`).join('')}</select></label>`:''}`).join('')}</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn sm" data-act="pushTest">Enviar um teste</button><button class="btn sm ghost" data-act="pushOff">Desativar</button></div>`;
+ const what='<p class="small muted" style="margin-top:0">Fralda acabando, consulta na véspera e 2 h antes, hora do remédio, vacinas e exames.</p>';
+ if(PUSH==='off')return what+'<button class="btn primary" data-act="pushOn">Ativar avisos</button>';
+ if(PUSH==='ios-install')return what+'<p class="small">No iPhone, instale o app primeiro: no Safari, toque em <b>Compartilhar</b> e em <b>Adicionar à Tela de Início</b>. Depois abra pelo ícone e volte aqui.</p>';
+ if(PUSH==='denied')return what+'<p class="small">Os avisos foram bloqueados neste aparelho. Libere nas configurações do celular para este app e abra de novo.</p>';
+ if(PUSH==='unsupported')return what+'<p class="small">Este navegador não recebe avisos. Use o Chrome no Android ou o app instalado no iPhone.</p>';
  return what+'<p class="small muted">Verificando…</p>';
 }
 A.pushOn=()=>{Notification.requestPermission().then(async perm=>{
@@ -1051,10 +1201,234 @@ document.addEventListener('change',e=>{
  const t=e.target;
  if(t.name==='quem'||t.name==='quem2'){WHO=t.value;lsSet('bebe-quem',WHO);toast('Registrando como '+WHO);render()}
  if(t.id==='x-file')uploadFiles(t);
+ if(t.dataset&&t.dataset.pref)savePref(t.dataset.pref,t.checked);
+ if(t.dataset&&t.dataset.prefh)savePref('mamadaH',+t.value);
  if(t.id==='dayPick'&&t.value)setDay(new Date(t.value+'T12:00').getTime());
 });
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&M)closeModal()});
+document.addEventListener('input',e=>{if(e.target.id==='sndVol'){SND.vol=+e.target.value;lsSet('ddb-snd-vol',String(SND.vol));if(SND.a)SND.a.volume=SND.vol}});
 let toastT;function toast(msg,err){const t=$('#toast');t.textContent=msg;t.className='toast'+(err?' err':'');t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,err?4500:2200)}
+
+/* ============ render (v2: app com navegação inferior) ============ */
+const PAGES={inicio:'Início',diario:'Diário',sons:'Sons',menu:'Menu',estoque:'Estoque',crescimento:'Crescimento',agenda:'Agenda',exames:'Exames',saude:'Vacinas e saúde',fases:'Fase e marcos',ajustes:'Ajustes',tutorial:'Como usar'};
+const ALIAS={hoje:'inicio',registros:'diario'};
+const pageOf=t=>{t=ALIAS[t]||t;return PAGES[t]?t:'inicio'};
+const TABS=Object.entries(PAGES);
+const ROOT=['inicio','diario','sons','menu'];
+let LAST_TAB=null,ONB_SHOWN=false,ONB=0;
+function render(){
+ const app=$('#app');
+ if(AUTH==='loading'){app.innerHTML=`<div class="wrap">${BRAND}<div class="top"><div class="who-baby"><div class="age">Abrindo…</div></div></div></div>`;return}
+ if(!ME){app.innerHTML=loginView();return}
+ if(!FAM){app.innerHTML=familyView();return}
+ if(S.cfg===undefined){app.innerHTML=`<div class="wrap">${BRAND}<div class="top"><div class="who-baby"><div class="age">${S.stale?'Os dados ainda não responderam. Verifique a conexão.':'Carregando…'}</div></div></div></div>`;return}
+ if(S.cfg===null){app.innerHTML=setupView();return}
+ S.tab=pageOf(S.tab);
+ const a=age(),tab=S.tab,enter=LAST_TAB!==tab;LAST_TAB=tab;
+ const scrollY=window.scrollY,dst=diaperStats();
+ const banner=S.stale?`<div class="banner">Sem conexão com os dados agora. O que aparece pode estar desatualizado.</div>`:'';
+ const menuBadge=dst.st==='bad'||dst.st==='warn'||shopping().length>0||VAX.some(v=>vaxStatus(v).s==='late');
+ const bar=tab==='inicio'
+  ?`<span class="logo">${LOGO}</span><div class="grow"><div class="t1">${esc(S.cfg.name||'Bebê')}</div><div class="t2">${esc(ageText(a))}</div></div><button class="who-chip" data-act="tab" data-id="ajustes">${esc(WHO||'Você')}</button>`
+  :ROOT.includes(tab)?`<div class="grow"><h1>${PAGES[tab]}</h1></div>${tab==='diario'?'<button class="btn sm" data-act="noteAdd">Anotação</button>':''}`
+  :`<button class="back" data-act="tab" data-id="menu" aria-label="Voltar">${ic('back')}</button><div class="grow"><h1>${PAGES[tab]}</h1></div>`;
+ const nb=(id,i,l,badge)=>`<button class="nb" data-act="tab" data-id="${id}"${(tab===id||(id==='menu'&&!ROOT.includes(tab)))?' aria-current="page"':''}>${ic(i)}${badge?'<span class="badge"></span>':''}${l}</button>`;
+ app.innerHTML=`<header class="appbar"><div class="in">${bar}</div></header>
+ <main class="wrap view${enter?' view-enter':''}">${banner}${VIEWS[tab]()}</main>
+ <nav class="nav" aria-label="Navegação"><div class="in">${nb('inicio','home','Início')}${nb('diario','list','Diário')}<button class="fab" data-act="fab" aria-label="Registrar">${ic('plus')}</button>${nb('sons','music','Sons')}${nb('menu','grid','Menu',menuBadge)}</div></nav>`;
+ if(!enter)window.scrollTo(0,scrollY);
+ if(!ONB_SHOWN&&!lsGet('ddb-onb')){ONB_SHOWN=true;setTimeout(showOnb,450)}
+}
+
+/* ---------- Início ---------- */
+function tile(type,act,lbl,val,sub,cta,live,icn){return`<button class="now-t${live?' live':''}" style="--c:${EVC[type]}" data-act="${act}"><span class="ic" style="--c:${EVC[type]}">${ic(icn)}</span><span><span class="lbl">${lbl}</span><div class="val">${esc(val)}</div></span><span class="sub">${esc(sub)}</span><span class="cta">${cta}</span></button>`}
+function ring(v,t,c,lab,sub){const r=38,C=2*Math.PI*r,f=Math.max(0,Math.min(1,v/t));return`<svg class="ring" width="96" height="96" viewBox="0 0 96 96" role="img" aria-label="${esc(lab)} de ${sub}"><circle class="rbg" cx="48" cy="48" r="${r}" fill="none" stroke-width="9"/><circle class="rfg" cx="48" cy="48" r="${r}" fill="none" stroke="${c}" stroke-width="9" stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C*(1-f)).toFixed(1)}" transform="rotate(-90 48 48)" style="--C:${C.toFixed(1)}"/><text x="48" y="49" text-anchor="middle" font-size="15">${esc(lab)}</text><text x="48" y="64" text-anchor="middle" font-size="10" style="fill:var(--muted);font-family:var(--body);font-weight:700">${sub}</text></svg>`}
+function medNext(){const now=Date.now(),latest={};allEv().forEach(e=>{if(e.type!=='med')return;const k=(e.name||'').toLowerCase();if(!latest[k])latest[k]=e});
+ return Object.values(latest).filter(e=>+e.remindEvery>0).map(e=>({ev:e,due:e.start+e.remindEvery*HR})).filter(m=>(!m.ev.remindUntil||m.due<=m.ev.remindUntil+MIN)&&m.due-now<4*HR&&now-m.due<6*HR)}
+function homeAlerts(){
+ const out=[],now=Date.now(),a=age();
+ if((PUSH==='off'||PUSH==='ios-install')&&!(+lsGet('ddb-push-x')>now-3*DAY))out.push({c:'var(--accent)',i:'bell',t:'Ative os avisos',s:'Fralda acabando, consultas, vacinas e remédio na hora.',a:'pushPrompt',l:'Ativar',x:'pushX'});
+ medNext().forEach(m=>out.push({c:'var(--health)',i:'pill',t:(m.due<=now?'Hora do remédio: ':'Próxima dose: ')+m.ev.name,s:(m.due<=now?'era às ':'às ')+fmtT(m.due)+(m.ev.dose?' · '+m.ev.dose:''),a:'medAgain',id:m.ev.id,l:'Dei agora'}));
+ if(a&&a.m>0&&a.d===0){const ph=phaseOf(a),nova=PHASES.some(p=>p.from===a.m);out.push({c:'var(--growth)',i:'cake',t:`Hoje ${S.cfg.name||'o bebê'} completa ${a.m} ${a.m>1?'meses':'mês'}!`,s:nova?'Começa a fase: '+ph.name:'Que tal guardar uma conquista de hoje?',a:nova?'tab':'msAdd',id:'fases',l:nova?'Ver':'Registrar'})}
+ const t0=dayStart(now);upcoming().filter(x=>dateOnly(x.date)<t0+2*DAY).slice(0,2).forEach(x=>{const hoje=dayStart(dateOnly(x.date))===t0;out.push({c:'var(--accent)',i:x._exam?'flask':'cal',t:(hoje?'Hoje':'Amanhã')+(x.time?' às '+x.time:'')+': '+x.title,s:x.place||'',a:'tab',id:x._exam?'exames':'agenda',l:'Ver'})});
+ const d=diaperStats();
+ if(!d.items.length)out.push({c:'var(--diaper)',i:'diaper',t:'Cadastre as fraldas',s:'Assim o app avisa antes de acabar.',a:'invAdd',id:'fralda',l:'Cadastrar'});
+ else if(d.st==='bad'||d.st==='warn')out.push({c:`var(--${d.st==='bad'?'bad':'warn'})`,i:'diaper',t:d.st==='bad'?'Fraldas acabando':'Comprar fraldas em breve',s:`Restam ${d.total}, dá para uns ${Math.floor(d.days)} dias`,a:'buyDiaper',l:'Comprei'});
+ const sh=shopping();if(sh.length)out.push({c:'var(--warn)',i:'bag',t:'Lista de compras',s:sh.map(i=>i.name).slice(0,3).join(', '),a:'tab',id:'estoque',l:'Ver'});
+ const late=VAX.filter(v=>vaxStatus(v).s==='late'),soon=VAX.filter(v=>vaxStatus(v).s==='soon');
+ if(late.length)out.push({c:'var(--bad)',i:'syringe',t:late.length>1?late.length+' vacinas atrasadas':'Vacina atrasada',s:late.slice(0,2).map(v=>v[1]).join(', '),a:'tab',id:'saude',l:'Ver'});
+ else if(soon.length)out.push({c:'var(--warn)',i:'syringe',t:'Vacina chegando: '+soon[0][1],s:vaxStatus(soon[0]).l,a:'tab',id:'saude',l:'Ver'});
+ const wait=S.exams.find(e=>e.status==='realizado'&&e.date&&dateOnly(e.date)<now-10*DAY);if(wait)out.push({c:'var(--health)',i:'flask',t:'Resultado de exame',s:wait.name+' ainda sem resultado',a:'exEdit',id:wait.id,l:'Abrir'});
+ return out.slice(0,5);
+}
+VIEWS.inicio=()=>{
+ const now=Date.now(),evs=allEv(),sl=ongoing('sleep'),fd=ongoing('feed');
+ const lastSl=evs.find(e=>e.type==='sleep'&&e.end!=null),lastFeed=evs.find(e=>e.type==='feed'),lastDi=evs.find(e=>e.type==='diaper'),lastPeito=evs.find(e=>e.type==='feed'&&e.kind==='peito');
+ const ds=dayStats(dayStart(now)),a=age(),ph=a?phaseOf(a):PHASES[0];
+ const nextSide=lastPeito?(lastPeito.side==='E'?'direito':lastPeito.side==='D'?'esquerdo':''):'';
+ const t1=sl?tile('sleep','sleepToggle','Dormindo',fmtDur(now-sl.start),'desde '+fmtT(sl.start),'Toque quando acordar',true,'moon')
+  :tile('sleep','sleepToggle',lastSl?'Acordado':'Sono',lastSl?fmtDur(now-lastSl.end):'—',lastSl?'desde '+fmtT(lastSl.end):'sem registro','Toque quando dormir',false,'moon');
+ const t2=fd?tile('feed','feedStop','Mamando',fmtDur(now-fd.start),'lado '+(SIDE[fd.side]||''),'Toque para encerrar',true,'bottle')
+  :tile('feed','feedOpen','Mamada',lastFeed?ago(lastFeed.start):'—',lastFeed?(nextSide?'próximo peito: '+nextSide:evText(lastFeed).t):'sem registro','Registrar',false,'bottle');
+ const t3=tile('diaper','diaperOpen','Fralda',lastDi?ago(lastDi.start):'—',lastDi?`${ds.diapers} ${ds.diapers===1?'troca':'trocas'} hoje`:'sem registro','Trocar',false,'diaper');
+ const al=homeAlerts();
+ const pct=ph.to<999&&a?Math.min(100,Math.max(3,(a.months-ph.from)/(ph.to-ph.from)*100)):100;
+ const recent=ds.list.slice(0,5);
+ return`<div class="now">${t1}${t2}${t3}</div>
+ ${al.length?`<div class="alerts">${al.map(x=>`<div class="alert"><span class="ic" style="--c:${x.c}">${ic(x.i)}</span><div class="tx"><b>${esc(x.t)}</b>${x.s?`<span>${esc(x.s)}</span>`:''}</div><button class="btn sm" data-act="${x.a}"${x.id?` data-id="${esc(x.id)}"`:''}>${x.l}</button>${x.x?`<button class="x" data-act="${x.x}" aria-label="Dispensar">×</button>`:''}</div>`).join('')}</div>`:''}
+ <div class="card"><div class="card-h"><h2>Hoje</h2><button class="linkbtn" data-act="tab" data-id="diario">Ver diário</button></div>
+  <div class="today">${ring(ds.sleep/HR,ph.sonoH[0],'var(--sleep)',fmtDur(ds.sleep),'de sono')}
+   <div class="mini"><div class="v">${ds.feeds}</div><div class="k">${ds.feeds===1?'mamada':'mamadas'}${ds.ml?' · '+ds.ml+' ml':''}</div></div>
+   <div class="mini"><div class="v">${ds.diapers}</div><div class="k">fraldas · ${ds.xixi} xixi, ${ds.coco} cocô</div></div></div>
+  ${recent.length?`<div style="margin-top:12px">${timeline(recent,'')}</div>`:`<div class="empty" style="margin-top:12px">Nada registrado hoje. Toque em <b>Sono</b>, <b>Mamada</b> ou <b>Fralda</b> lá em cima.</div>`}
+ </div>
+ ${a&&a.days>=0?`<div class="card phase" data-act="tab" data-id="fases"><span class="ic lg" style="--c:var(--growth)">${ic('sprout')}</span><div style="flex:1;min-width:0"><div class="small muted">Fase atual · ${Math.floor(a.days/7)} semanas</div><b>${esc(ph.name)}</b><div class="bar"><i style="width:${pct}%"></i></div></div><span class="chev muted">${ic('chev')}</span></div>`:''}`;
+};
+VIEWS.hoje=VIEWS.inicio;
+VIEWS.diario=VIEWS.registros;
+
+/* ---------- Menu ---------- */
+VIEWS.menu=()=>{
+ const d=diaperStats(),late=VAX.filter(v=>vaxStatus(v).s==='late').length,up=upcoming()[0],pend=S.exams.filter(e=>e.status!=='resultado').length;
+ const g=[...S.growth].filter(x=>x.w).sort((a,b)=>b.date.localeCompare(a.date))[0];
+ const T=(id,i,c,t,s,badge)=>`<button class="mtile" data-act="tab" data-id="${id}"><span class="ic" style="--c:${c}">${ic(i)}</span><span class="tx"><b>${t}</b><span>${esc(s)}</span></span>${badge?`<span class="pill bad">${badge}</span>`:''}<span class="chev">${ic('chev')}</span></button>`;
+ return`<div class="mgroup"><div class="label">Saúde</div>
+  ${T('saude','syringe','var(--health)','Vacinas e saúde',late?`${late} ${late>1?'vacinas atrasadas':'vacina atrasada'}`:'Caderneta, remédios e ficha',late?'!':'')}
+  ${T('exames','flask','var(--health)','Exames',pend?`${pend} em andamento`:'Pedidos, resultados e anexos')}
+  ${T('agenda','cal','var(--accent)','Agenda',up?`Próximo: ${fmtD(dateOnly(up.date))} · ${up.title}`:'Consultas e compromissos')}
+  ${T('crescimento','growth','var(--growth)','Crescimento',g?`${num(g.w,2)} kg em ${fmtD(dateOnly(g.date))}`:'Peso, altura e curvas')}</div>
+ <div class="mgroup"><div class="label">Casa</div>
+  ${T('estoque','box','var(--diaper)','Estoque',d.items.length?`${d.total} fraldas${d.days!=null?' · uns '+Math.floor(d.days)+' dias':''}`:'Fraldas e itens do bebê',d.st==='bad'||d.st==='warn'?'!':'')}</div>
+ <div class="mgroup"><div class="label">Bebê</div>
+  ${T('fases','sprout','var(--growth)','Fase e marcos',age()?phaseOf(age()).name:'')}</div>
+ <div class="mgroup"><div class="label">App</div>
+  ${T('tutorial','book','var(--other)','Como usar','Passo a passo rápido')}
+  ${T('ajustes','gear','var(--other)','Ajustes','Família, avisos e dados do bebê')}</div>`;
+};
+
+/* ---------- Como usar ---------- */
+VIEWS.tutorial=()=>{const H=(i,c,t,st)=>`<details class="howto"><summary><span class="ic" style="--c:${c}">${ic(i)}</span>${t}</summary><ol>${st.map(s=>`<li>${s}</li>`).join('')}</ol></details>`;
+ return`<div class="card" style="display:flex;gap:12px;align-items:center"><span class="ic lg">${ic('book')}</span><div style="flex:1"><b>Apresentação rápida</b><div class="small muted">1 minuto, com o principal.</div></div><button class="btn sm primary" data-act="showOnb">Ver</button></div>
+ ${H('moon','var(--sleep)','Registrar o sono',['Na Início, toque no cartão <b>Sono</b> quando o bebê dormir.','Toque de novo quando acordar. O tempo é contado sozinho.','Esqueceu? Use <b>+ › Sono</b> e ajuste o horário.'])}
+ ${H('bottle','var(--feed)','Registrar mamada',['Toque em <b>Mamada</b>: peito, mamadeira ou comidinha.','No peito, use <b>Começar a mamar agora</b> para cronometrar. O app sugere o próximo lado.','Para encerrar, toque no cartão laranja.'])}
+ ${H('diaper','var(--diaper)','Fraldas e estoque',['Toque em <b>Fralda</b> e escolha xixi, cocô, os dois ou seca.','Cada troca desconta 1 fralda do estoque.','Chegou pacote? <b>+ › Comprei fraldas</b>. O app avisa quando faltarem 3 dias.'])}
+ ${H('pill','var(--health)','Remédio com lembrete',['<b>+ › Remédio</b>, com nome e dose.','Em <b>Lembrar a próxima dose</b>, escolha o intervalo e por quantos dias.','Na hora chega o aviso, e aparece <b>Dei agora</b> na Início.'])}
+ ${H('flask','var(--health)','Exames',['<b>+ › Exame</b> para guardar o pedido, com foto ou PDF.','Com data e hora, vocês recebem aviso na véspera e 2 h antes.','Saiu o resultado? Abra o exame, mude para <b>Com resultado</b> e anexe.'])}
+ ${H('syringe','var(--health)','Vacinas',['Em <b>Menu › Vacinas e saúde</b> está a caderneta pela idade.','Toque na vacina para marcar como aplicada.'])}
+ ${H('music','var(--sleep)','Sons para acalmar',['Abra <b>Sons</b> e toque em um som. Toque de novo para parar.','Escolha quando desligar: 15, 30 ou 60 minutos.','Funciona sem internet. No iPhone, deixe o app aberto na tela.'])}
+ ${H('note','var(--other)','Corrigir ou apagar',['Toque no registro na Início ou no Diário.','Mude e salve, ou apague.'])}
+ ${H('users','var(--accent)','Usar em família',['Em <b>Menu › Ajustes</b>, copie o código de convite.','A outra pessoa cria a conta e entra com o código.','O que um registra aparece na hora para o outro.'])}
+ ${H('bell','var(--warn)','Instalar e receber avisos',['iPhone: no Safari, <b>Compartilhar › Adicionar à Tela de Início</b>. Android: <b>⋮ › Instalar app</b>.','Abra pelo ícone e toque em <b>Ativar avisos</b>.','Em <b>Ajustes</b>, escolha o que quer receber.'])}`};
+
+/* ---------- boas-vindas ---------- */
+function showOnb(){ONB=0;drawOnb()}
+function drawOnb(){
+ let el=$('#onb');if(!el){el=document.createElement('div');el.id='onb';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');document.body.appendChild(el);
+  let x0=null;el.addEventListener('touchstart',e=>{x0=e.touches[0].clientX},{passive:true});el.addEventListener('touchend',e=>{if(x0==null)return;const dx=e.changedTouches[0].clientX-x0;x0=null;if(dx<-50&&ONB<4)A.onbNext();if(dx>50&&ONB>0){ONB--;drawOnb()}})}
+ const n=S.cfg?.name||'o bebê';
+ const art3=`<span class="ic lg" style="--c:var(--sleep)">${ic('moon')}</span><span class="ic lg" style="--c:var(--feed)">${ic('bottle')}</span><span class="ic lg" style="--c:var(--diaper)">${ic('diaper')}</span>`;
+ const sl=[
+  {art:`<div style="width:84px">${LOGO}</div>`,h:'Bem-vindos ao Diário do Bebê',p:`Tudo de ${n} num lugar só, para vocês acompanharem juntos.`},
+  {art:art3,h:'Registre em um toque',p:'Na Início, toque em Sono, Mamada ou Fralda. No botão + ficam remédio, banho, exame, medidas e o resto.'},
+  {art:`<span class="ic lg" style="--c:var(--accent)">${ic('users')}</span>`,h:'Os dois ao mesmo tempo',p:`Quem cuida junto entra com o código ${INVITE} (fica em Menu › Ajustes). O que um registra aparece na hora para o outro.`},
+  {art:`<span class="ic lg" style="--c:var(--sleep)">${ic('music')}</span>`,h:'Sons para acalmar',p:'Útero, shhh, chuva, ruído branco e canção de ninar, com timer. Funcionam até sem internet.'},
+  {art:`<span class="ic lg" style="--c:var(--warn)">${ic('bell')}</span>`,h:'Avisos na hora certa',p:'Fralda acabando, consulta na véspera, hora do remédio e vacina chegando. Você escolhe o que quer receber.',last:true}];
+ const s=sl[ONB];
+ el.innerHTML=`<button class="skip" data-act="onbEnd">Pular</button><div class="slide"><div class="art">${s.art}</div><h2>${s.h}</h2><p>${esc(s.p)}</p></div><div class="dots">${sl.map((_,i)=>`<i class="${i===ONB?'on':''}"></i>`).join('')}</div>
+ <div class="acts">${s.last?`${PUSH==='off'?'<button class="btn primary" data-act="onbPush">Ativar avisos</button>':PUSH==='ios-install'?'<p class="small muted" style="text-align:center;margin:0 0 6px">No iPhone, instale o app primeiro (Safari › Compartilhar › Adicionar à Tela de Início). Depois ative os avisos.</p>':''}<button class="btn${PUSH==='off'?'':' primary'}" data-act="onbEnd">Começar a usar</button>`:'<button class="btn primary" data-act="onbNext">Continuar</button>'}</div>`;
+}
+A.onbNext=()=>{ONB=Math.min(4,ONB+1);drawOnb()};
+A.onbEnd=()=>{lsSet('ddb-onb','1');const el=$('#onb');if(el){el.style.transition='opacity .2s';el.style.opacity='0';setTimeout(()=>el.remove(),200)}};
+A.onbPush=()=>{A.pushOn();A.onbEnd()};
+A.showOnb=()=>showOnb();
+
+/* ---------- registrar (+) ---------- */
+A.fab=()=>openModal({title:'Registrar',noFooter:true,body:`<div class="grid-act">${[
+ ['feedOpen','bottle','var(--feed)','Mamada'],['diaperOpen','diaper','var(--diaper)','Fralda'],['sleepPast','moon','var(--sleep)','Sono'],
+ ['medAdd','pill','var(--health)','Remédio'],['tempAdd','thermo','var(--health)','Temperatura'],['bathAdd','drop','var(--other)','Banho'],
+ ['growthAdd','growth','var(--growth)','Peso e medida'],['exAdd','flask','var(--health)','Exame'],['agAdd','cal','var(--accent)','Compromisso'],
+ ['msAdd','star','var(--feed)','Primeira vez'],['noteAdd','note','var(--other)','Anotação'],['buyDiaper','bag','var(--diaper)','Comprei fraldas']
+ ].map(([a,i,c,l])=>`<button type="button" class="choice" data-act="${a}"><span class="ic lg" style="--c:${c}">${ic(i)}</span>${l}</button>`).join('')}</div>`});
+A.buyDiaper=()=>{const id=S.cfg.diaperItem||S.inv.find(i=>i.cat==='fralda')?.id;if(!id)return A.invAdd('fralda');A.invBuy(id)};
+A.medAgain=id=>{const e=allEv().find(x=>x.id===id);if(!e)return;addEvent({type:'med',name:e.name,dose:e.dose,start:Date.now(),remindEvery:e.remindEvery,remindUntil:e.remindUntil}).then(()=>toast('Dose registrada'+(e.remindEvery?' · próxima às '+fmtT(Date.now()+e.remindEvery*HR):'')))};
+A.pushPrompt=()=>{if(PUSH==='ios-install'){openModal({title:'Primeiro, instale o app',noFooter:true,body:`<ol class="steps"><li>Abra este endereço no <b>Safari</b>.</li><li>Toque em <b>Compartilhar</b> (o quadrado com a seta).</li><li>Escolha <b>Adicionar à Tela de Início</b>.</li><li>Abra pelo ícone novo e toque em <b>Ativar avisos</b>.</li></ol>`});return}A.pushOn()};
+A.pushX=()=>{lsSet('ddb-push-x',String(Date.now()));render()};
+function medRemind(ev){const every=+ev.remindEvery||0,days=ev.remindUntil&&ev.start?Math.max(1,Math.round((ev.remindUntil-ev.start)/DAY)):3;
+ return`<div class="frow">${fld('Lembrar a próxima dose',`<select name="remindEvery" id="f-rem">${[[0,'Não lembrar'],[4,'Daqui a 4 horas'],[6,'Daqui a 6 horas'],[8,'Daqui a 8 horas'],[12,'Daqui a 12 horas'],[24,'Daqui a 24 horas']].map(([v,l])=>`<option value="${v}"${every===v?' selected':''}>${l}</option>`).join('')}</select>`)}${fld('Durante',`<select name="remindDays" id="f-remd">${[1,2,3,5,7,10,14].map(d=>`<option value="${d}"${d===days?' selected':''}>${d} ${d>1?'dias':'dia'}</option>`).join('')}</select>`)}</div>`}
+
+/* ---------- sons ---------- */
+const SOUNDS=[
+ ['utero','Útero','Batimento e som abafado, como na barriga','heart','var(--health)'],
+ ['shh','Shhh','O "shhh" ritmado do colo','wind','var(--accent)'],
+ ['ninar','Canção de ninar','Caixinha de música','music','var(--feed)'],
+ ['chuva','Chuva','Constante e suave','rain','var(--sleep)'],
+ ['mar','Ondas do mar','Lentas e regulares','wave','var(--diaper)'],
+ ['ventilador','Ventilador','Zumbido constante','fan','var(--other)'],
+ ['branco','Ruído branco','O clássico, mais agudo','noise','var(--other)'],
+ ['rosa','Ruído rosa','Mais suave que o branco','noise','var(--health)'],
+ ['marrom','Ruído marrom','Grave, como num avião','noise','var(--growth)'],
+ ['coracao','Coração','Só o batimento, calmo','heart','var(--bad)']];
+const SR=22050;
+function synth(id){
+ const len={utero:20,shh:22,ninar:28,chuva:24,mar:24,ventilador:20,branco:20,rosa:20,marrom:20,coracao:20}[id];
+ const L=len*SR,X=Math.round(1.5*SR),N=L+X,a=new Float32Array(N),W=()=>Math.random()*2-1;
+ let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;const pink=()=>{const w=W();b0=.99886*b0+w*.0555179;b1=.99332*b1+w*.0750759;b2=.969*b2+w*.153852;b3=.8665*b3+w*.3104856;b4=.55*b4+w*.5329522;b5=-.7616*b5-w*.016898;const o=b0+b1+b2+b3+b4+b5+b6+w*.5362;b6=w*.115926;return o*.11};
+ let br=0;const brown=()=>{br=(br+.02*W())/1.02;return br*3.5};
+ const lp=f=>{const k=1-Math.exp(-2*Math.PI*f/SR);let y=0;return x=>(y+=k*(x-y))};
+ const P=60/72,sh=x=>x<0||x>.25?0:Math.sin(2*Math.PI*52*x)*Math.exp(-x/.055)*(1-Math.exp(-x/.004)),thump=t=>{const tp=t%P;return sh(tp)+.65*sh(tp-.3)};
+ const gain={branco:.5,rosa:.75,marrom:.85,utero:.9,coracao:.9,shh:.7,chuva:.75,mar:.85,ventilador:.75,ninar:.8}[id];
+ switch(id){
+  case'branco':for(let i=0;i<N;i++)a[i]=W();break;
+  case'rosa':for(let i=0;i<N;i++)a[i]=pink();break;
+  case'marrom':for(let i=0;i<N;i++)a[i]=brown();break;
+  case'utero':{const f=lp(320),f2=lp(160);for(let i=0;i<N;i++){const t=i/SR,tp=(t%P)/P;a[i]=f2(f(brown()))*(.8+.2*Math.sin(2*Math.PI*tp))*1.6+thump(t)*.55}break}
+  case'coracao':{const f=lp(250);for(let i=0;i<N;i++){const t=i/SR;a[i]=thump(t)*.9+f(brown())*.25}break}
+  case'shh':{const f=lp(1400),Q=2.2;for(let i=0;i<N;i++){const t=i/SR,w=W(),x=t%Q,env=x<.3?x/.3:x<1.5?1:x<2?1-(x-1.5)/.5*.85:.15;a[i]=(w-f(w))*env}break}
+  case'chuva':{const f=lp(2500),g=lp(900);let drop=0;for(let i=0;i<N;i++){if(Math.random()<.0009)drop=.6+Math.random()*.6;drop*=.9975;a[i]=f(pink())*.8+g(W())*drop*.5}break}
+  case'mar':{const f=lp(600),g=lp(1800);for(let i=0;i<N;i++){const t=i/SR,env=.2+.8*Math.pow(.5-.5*Math.cos(2*Math.PI*(t%8)/8),1.6);a[i]=(f(brown())*.7+g(pink())*.5*env)*(.35+.65*env)}break}
+  case'ventilador':{const f=lp(700);for(let i=0;i<N;i++){const t=i/SR;a[i]=(f(brown())*.8+pink()*.25)*(1+.05*Math.sin(Math.PI*t))+Math.sin(2*Math.PI*100*t)*.02}break}
+  case'ninar':{const q=.55,F={C:523.25,D:587.33,E:659.25,F:698.46,G:783.99,A:880};let t0=.2;const notes=[];['CCGGAAG','FFEEDDC','GGFFEED','GGFFEED','CCGGAAG','FFEEDDC'].forEach(l=>[...l].forEach((n,j)=>{notes.push([t0,F[n]]);t0+=j===6?2*q:q}));
+   for(const[o,fr]of notes){const s0=Math.round(o*SR),n=3*SR;for(let k=0;k<n&&s0+k<N;k++){const t=k/SR,e=Math.exp(-t/.8)*(1-Math.exp(-t/.003));a[s0+k]+=(Math.sin(2*Math.PI*fr*t)+.35*Math.sin(4*Math.PI*fr*t)+.12*Math.sin(6.02*Math.PI*fr*t))*e*.32}}
+   for(let i=L;i<N;i++)a[i-L]+=a[i];break}
+ }
+ if(id!=='ninar')for(let i=0;i<X;i++){const t=i/X;a[i]=a[i]*Math.sqrt(t)+a[L+i]*Math.sqrt(1-t)}
+ let pk=0;for(let i=0;i<L;i++)pk=Math.max(pk,Math.abs(a[i]));const g=.85*gain/(pk||1),out=new Int16Array(L);
+ for(let i=0;i<L;i++)out[i]=Math.max(-1,Math.min(1,a[i]*g))*32767;return out}
+function wav(pcm){const b=new ArrayBuffer(44+pcm.length*2),v=new DataView(b),w=(o,s)=>[...s].forEach((c,i)=>v.setUint8(o+i,c.charCodeAt(0)));
+ w(0,'RIFF');v.setUint32(4,36+pcm.length*2,true);w(8,'WAVE');w(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,SR,true);v.setUint32(28,SR*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);w(36,'data');v.setUint32(40,pcm.length*2,true);new Int16Array(b,44).set(pcm);return new Blob([b],{type:'audio/wav'})}
+const SND={id:null,a:null,urls:{},mins:+(lsGet('ddb-snd-min')??30),vol:+(lsGet('ddb-snd-vol')||.7),end:0,iv:null};
+if(!Number.isFinite(SND.mins))SND.mins=30;
+const sname=id=>(SOUNDS.find(s=>s[0]===id)||[])[1]||'';
+const sndOn=()=>SND.a&&SND.id&&!SND.a.paused;
+function sndPlay(id){
+ if(SND.id===id&&sndOn())return sndStop();
+ if(!SND.a){SND.a=new Audio();SND.a.loop=true;SND.a.setAttribute('playsinline','');SND.a.addEventListener('pause',()=>{drawPlayer();if(S.tab==='sons')render()});SND.a.addEventListener('play',()=>{drawPlayer();if(S.tab==='sons')render()})}
+ if(!SND.urls[id])SND.urls[id]=URL.createObjectURL(wav(synth(id)));
+ SND.a.src=SND.urls[id];SND.a.volume=SND.vol;SND.id=id;SND.end=SND.mins?Date.now()+SND.mins*MIN:0;
+ SND.a.play().catch(()=>{toast('Toque de novo para tocar.',true)});
+ if('mediaSession' in navigator){try{navigator.mediaSession.metadata=new MediaMetadata({title:sname(id),artist:'Diário do Bebê',artwork:[{src:'icons/icon-512.png',sizes:'512x512',type:'image/png'}]});navigator.mediaSession.setActionHandler('pause',()=>SND.a.pause());navigator.mediaSession.setActionHandler('play',()=>SND.a.play());navigator.mediaSession.setActionHandler('stop',()=>sndStop())}catch(e){}}
+ clearInterval(SND.iv);SND.iv=setInterval(sndTick,1000);drawPlayer();render();
+}
+function sndStop(){if(SND.a){SND.a.pause();SND.a.volume=SND.vol}SND.id=null;clearInterval(SND.iv);drawPlayer();render()}
+function sndTick(){if(!SND.id)return;if(SND.end){const r=SND.end-Date.now();if(r<=0)return sndStop();if(r<20000&&SND.a)SND.a.volume=Math.max(0,SND.vol*r/20000)}drawPlayer()}
+function drawPlayer(){const el=$('#player');if(!el)return;if(!SND.id){el.hidden=true;document.body.classList.remove('playing');return}
+ el.hidden=false;document.body.classList.add('playing');const s=SOUNDS.find(x=>x[0]===SND.id),on=sndOn();
+ const rem=SND.end?Math.max(0,Math.ceil((SND.end-Date.now())/MIN)):0;
+ el.innerHTML=`<div class="in"><span class="ic" style="--c:${s[4]};background:rgb(255 255 255 / .12);color:inherit">${ic(s[3])}</span><div class="tx"><b>${s[1]}</b>${on?(SND.end?`desliga em ${rem} min`:'tocando sem timer'):'pausado'}</div><button class="pb" data-act="sndToggle" aria-label="${on?'Pausar':'Tocar'}">${ic(on?'pause':'play')}</button><button class="pb" data-act="sndStop" aria-label="Parar">${ic('x')}</button></div>`}
+A.snd=id=>sndPlay(id);
+A.sndStop=()=>sndStop();
+A.sndToggle=()=>{if(!SND.a)return;if(SND.a.paused){if(SND.end&&SND.end<Date.now()+MIN&&SND.mins)SND.end=Date.now()+SND.mins*MIN;SND.a.volume=SND.vol;SND.a.play().catch(()=>{})}else SND.a.pause()};
+A.sndMin=m=>{SND.mins=+m;lsSet('ddb-snd-min',String(SND.mins));if(SND.id)SND.end=SND.mins?Date.now()+SND.mins*MIN:0;drawPlayer();render()};
+VIEWS.sons=()=>`<div class="snd-grid">${SOUNDS.map(([id,n,d,i,c])=>{const on=SND.id===id;return`<button class="snd${on?' on':''}" style="--c:${c}" data-act="snd" data-id="${id}" aria-pressed="${on}"><span class="ic" style="--c:${c}">${ic(i)}</span>${on&&sndOn()?'<span class="eq" aria-hidden="true"><i></i><i></i><i></i></span>':''}<span><b>${n}</b><br><span class="d">${d}</span></span></button>`}).join('')}</div>
+ <div class="card"><div class="card-h"><h2>Desligar depois de</h2></div><div class="chips">${[[15,'15 min'],[30,'30 min'],[60,'1 hora'],[0,'Não desligar']].map(([m,l])=>`<button class="chip" aria-pressed="${SND.mins===m}" data-act="sndMin" data-id="${m}">${l}</button>`).join('')}</div>
+ ${isIOS?'':`<div class="label" style="margin-top:16px">Volume</div><input type="range" id="sndVol" min="0" max="1" step="0.05" value="${SND.vol}" aria-label="Volume">`}
+ <p class="small muted" style="margin:14px 0 0">Deixe o celular a uns 2 metros do berço, com volume baixo.${isIOS?' No iPhone, o volume é o dos botões do aparelho.':''}</p></div>`;
+
+/* ---------- preferências de aviso ---------- */
+const PREFS=[['fralda','Fraldas acabando',1],['compras','Lista de compras',1],['agenda','Consultas e exames (véspera e 2 h antes)',1],['remedios','Hora do remédio',1],['vacinas','Vacinas chegando ou atrasadas',1],['exames','Resultado de exame pendente',1],['marcos','Mesversário e nova fase',1],['mamada','Tempo desde a última mamada',0],['resumo','Resumo do dia, às 21h',0]];
+let MYPREFS={},SUB_EP=null;
+const prefOn=k=>MYPREFS[k]??!!(PREFS.find(p=>p[0]===k)||[])[2];
+async function savePref(k,v){MYPREFS[k]=v;render();if(!SUB_EP)return;const{error}=await sb.from('push_subs').update({prefs:MYPREFS}).eq('endpoint',SUB_EP);if(error)toast('Não deu para salvar a preferência.',true)}
 
 /* ============ início ============ */
 function subscribeAll(){
@@ -1068,7 +1442,7 @@ function subscribeAll(){
  subMonths();
 }
 let curYm=ymOf(Date.now());
-setInterval(()=>{const ym=ymOf(Date.now());if(ym!==curYm){curYm=ym;if(FAM)subMonths()}if(!M&&S.cfg&&S.tab!=='ajustes')render()},30000);
+setInterval(()=>{const ym=ymOf(Date.now());if(ym!==curYm){curYm=ym;if(FAM)subMonths()}if(!M&&S.cfg&&!['ajustes','tutorial','sons'].includes(S.tab))render()},30000);
 async function loadMembers(){const{data}=await sb.from('members').select('user_id,display_name').eq('family_id',FAM);MEMBERS=data||[];render()}
 async function loadFamily(){
  const{data,error}=await sb.from('members').select('family_id,display_name,families(invite_code)').eq('user_id',ME.id).limit(1);
@@ -1079,8 +1453,8 @@ async function loadFamily(){
  sb.channel('fam-'+FAM).on('postgres_changes',{event:'*',schema:'public',table:'docs',filter:'family_id=eq.'+FAM},p=>{const r=p.new;if(!r||!r.path)return;r.deleted?cache.delete(r.path):cache.set(r.path,r.data);touch(r.path)}).subscribe(st=>{if(st==='SUBSCRIBED')refetchAll()});
 }
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&FAM)refetchAll()});
-window.addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(TABS.some(t=>t[0]===h)&&h!==S.tab){S.tab=h;render()}});
-{const h=location.hash.slice(1);if(TABS.some(t=>t[0]===h))S.tab=h}
+window.addEventListener('hashchange',()=>{const h=pageOf(location.hash.slice(1));if(location.hash.length>1&&h!==S.tab){S.tab=h;render()}});
+{const h=location.hash.slice(1);S.tab=pageOf(h||S.tab)}
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(e=>console.warn('sw',e));
 sb.auth.onAuthStateChange((ev,session)=>{
  if(ev==='PASSWORD_RECOVERY'){setTimeout(()=>openModal({title:'Nova senha',saveLabel:'Salvar senha',body:fld('Nova senha','<input type="password" name="pw" id="p-new" minlength="6" required autocomplete="new-password">'),onSave:async fd=>{if((fd.pw||'').length<6){toast('Mínimo de 6 caracteres.',true);return false}const{error}=await sb.auth.updateUser({password:fd.pw});if(error){toast('Não deu para trocar a senha.',true);return false}toast('Senha trocada')}}),300)}

@@ -28,11 +28,14 @@ const ddmm = (iso: string) => iso.slice(8, 10) + "/" + iso.slice(5, 7);
 const json = (b: unknown, s = 200) => new Response(JSON.stringify(b), { status: s, headers: { ...cors, "Content-Type": "application/json" } });
 const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type", "Access-Control-Allow-Methods": "POST, OPTIONS" };
 
-async function send(fid: string, payload: Record<string, unknown>, onlyUser?: string) {
-  let q = db.from("push_subs").select("endpoint,sub").eq("family_id", fid);
+const DEF_OFF = ["mamada", "resumo"];
+type Sub = { endpoint: string; sub: unknown; prefs: Record<string, unknown> | null };
+const wants = (s: Sub, cat?: string) => !cat || ((s.prefs || {})[cat] ?? !DEF_OFF.includes(cat)) === true;
+async function send(fid: string, payload: Record<string, unknown>, onlyUser?: string, cat?: string, filter?: (s: Sub) => boolean) {
+  let q = db.from("push_subs").select("endpoint,sub,prefs").eq("family_id", fid);
   if (onlyUser) q = q.eq("user_id", onlyUser);
   const { data } = await q; let ok = 0;
-  for (const s of data || []) {
+  for (const s of ((data || []) as Sub[]).filter((x) => wants(x, cat) && (!filter || filter(x)))) {
     try { await webpush.sendNotification(s.sub, JSON.stringify(payload), { TTL: 43200 }); ok++; }
     catch (e) { const c = (e as { statusCode?: number }).statusCode; if (c === 404 || c === 410) await db.from("push_subs").delete().eq("endpoint", s.endpoint); else console.error("push", c); }
   }
@@ -47,23 +50,25 @@ async function checkFamily(fid: string) {
   const by = (p: string) => (rows || []).filter((r) => r.path.startsWith(p + "/")).map((r) => ({ id: r.path.split("/").pop()!, ...r.data }));
   const cfg = (rows || []).find((r) => r.path === "config/main")?.data || {};
   const baby = cfg.name || "o bebê";
-  const notify = async (key: string, title: string, body: string, tab: string) => { if (await once(fid, key)) { await send(fid, { title, body, url: APP_URL + "#" + tab, tag: key }); sent.push(key); } };
+  const notify = async (key: string, title: string, body: string, tab: string, cat: string, filter?: (s: Sub) => boolean) => { if (await once(fid, key)) { await send(fid, { title, body, url: APP_URL + "#" + tab, tag: key }, undefined, cat, filter); sent.push(key); } };
+  const hm = (ms: number) => new Date(ms + TZ * HR).toISOString().slice(11, 16);
+  const events = by(`months/${L.ym}/events`).concat(by(`months/${prevYm(L.ym)}/events`));
 
   // fraldas
   const inv = by("inventory"), fr = inv.filter((i) => i.cat === "fralda");
   if (fr.length && L.hour >= 9) {
     const total = fr.reduce((s, i) => s + (+i.qty || 0), 0);
-    const evs = by(`months/${L.ym}/events`).concat(by(`months/${prevYm(L.ym)}/events`)).filter((e) => e.type === "diaper" && e.start <= now);
+    const evs = events.filter((e) => e.type === "diaper" && e.start <= now);
     const last7 = evs.filter((e) => e.start >= now - 7 * DAY);
     let avg: number;
     if (last7.length >= 3) { const first = Math.min(...evs.map((e) => e.start)); avg = last7.length / Math.max(1, Math.min(7, (now - first) / DAY)); }
     else { const m = cfg.birth ? (now - Date.parse(cfg.birth)) / (30.44 * DAY) : 0; avg = m < 1 ? 10 : m < 6 ? 8 : m < 12 ? 6 : 5; }
     const days = total / avg;
-    if (days <= 3) await notify(`diaper:${L.iso}`, total ? "Fraldas acabando" : "Acabaram as fraldas", total ? `Restam ${total} fraldas, dá para ${days < 1 ? "menos de 1 dia" : "uns " + Math.floor(days) + (Math.floor(days) > 1 ? " dias" : " dia")}. Hora de comprar!` : "O estoque de fraldas está zerado no app.", "estoque");
+    if (days <= 3) await notify(`diaper:${L.iso}`, total ? "Fraldas acabando" : "Acabaram as fraldas", total ? `Restam ${total} fraldas, dá para ${days < 1 ? "menos de 1 dia" : "uns " + Math.floor(days) + (Math.floor(days) > 1 ? " dias" : " dia")}. Hora de comprar!` : "O estoque de fraldas está zerado no app.", "estoque", "fralda");
   }
   // lista de compras
   const low = inv.filter((i) => i.cat !== "fralda" && +i.min > 0 && (+i.qty || 0) <= +i.min);
-  if (low.length && L.hour >= 9) await notify(`shop:${L.iso}`, "Lista de compras", "Está acabando: " + low.map((i) => i.name).slice(0, 5).join(", ") + (low.length > 5 ? "…" : ""), "estoque");
+  if (low.length && L.hour >= 9) await notify(`shop:${L.iso}`, "Lista de compras", "Está acabando: " + low.map((i) => i.name).slice(0, 5).join(", ") + (low.length > 5 ? "…" : ""), "estoque", "compras");
 
   // compromissos e exames
   const items = by("agenda").filter((a) => !a.done && a.date).map((a) => ({ id: a.id, title: a.title, date: a.date, time: a.time, place: a.place, tab: "agenda" }))
@@ -71,15 +76,15 @@ async function checkFamily(fid: string) {
   const tomorrow = addDays(L.iso, 1);
   for (const it of items) {
     const where = it.place ? ` · ${it.place}` : "";
-    if (it.date === tomorrow && L.hour >= 19) await notify(`d1:${it.id}:${it.date}`, "Amanhã: " + it.title, (it.time ? "às " + it.time : "dia todo") + where, it.tab);
+    if (it.date === tomorrow && L.hour >= 19) await notify(`d1:${it.id}:${it.date}`, "Amanhã: " + it.title, (it.time ? "às " + it.time : "dia todo") + where, it.tab, "agenda");
     if (it.date === L.iso) {
-      if (it.time) { const diff = toMs(it.date, it.time) - now; if (diff > 0 && diff <= 2.5 * HR) await notify(`h2:${it.id}:${it.date}${it.time}`, "Daqui a pouco: " + it.title, "às " + it.time + where, it.tab); }
-      else if (L.hour >= 8) await notify(`d0:${it.id}:${it.date}`, "Hoje: " + it.title, where.replace(" · ", "") || "Não esqueça!", it.tab);
+      if (it.time) { const diff = toMs(it.date, it.time) - now; if (diff > 0 && diff <= 2 * HR) await notify(`h2:${it.id}:${it.date}${it.time}`, "Daqui a pouco: " + it.title, "às " + it.time + where, it.tab, "agenda"); }
+      else if (L.hour >= 8) await notify(`d0:${it.id}:${it.date}`, "Hoje: " + it.title, where.replace(" · ", "") || "Não esqueça!", it.tab, "agenda");
     }
   }
   // resultado de exame pendente
   if (L.hour >= 9) for (const e of by("exams").filter((e) => e.status === "realizado" && e.date && toMs(e.date) < now - 10 * DAY))
-    await notify(`res:${e.id}`, "Resultado de exame", `Já saiu o resultado de ${e.name}? Registre no app.`, "exames");
+    await notify(`res:${e.id}`, "Resultado de exame", `Já saiu o resultado de ${e.name}? Registre no app.`, "exames", "exames");
 
   // vacinas
   if (cfg.birth && L.hour >= 9) {
@@ -89,10 +94,46 @@ async function checkFamily(fid: string) {
     for (const [code, name, m, dose] of VAX) {
       if (done[code]) continue;
       const d = due(m), ms = toMs(d);
-      if (ms - now > 0 && ms - now <= 7 * DAY) await notify(`vs:${code}`, "Vacina chegando", `${name} (${dose}) de ${baby} está prevista para ${ddmm(d)}. Já agendou?`, "saude");
+      if (ms - now > 0 && ms - now <= 7 * DAY) await notify(`vs:${code}`, "Vacina chegando", `${name} (${dose}) de ${baby} está prevista para ${ddmm(d)}. Já agendou?`, "saude", "vacinas");
       if (now > ms + 14 * DAY && m < 48 + 12) late.push(`${name} (${dose})`);
     }
-    if (late.length) await notify(`vl:${Math.floor(now / (7 * DAY))}`, late.length > 1 ? `${late.length} vacinas atrasadas` : "Vacina atrasada", late.slice(0, 4).join(", ") + (late.length > 4 ? "…" : "") + ". Se já tomou, marque na caderneta do app.", "saude");
+    if (late.length) await notify(`vl:${Math.floor(now / (7 * DAY))}`, late.length > 1 ? `${late.length} vacinas atrasadas` : "Vacina atrasada", late.slice(0, 4).join(", ") + (late.length > 4 ? "…" : "") + ". Se já tomou, marque na caderneta do app.", "saude", "vacinas");
+  }
+  // remédio: próxima dose do último registro de cada remédio
+  const latestMed: Record<string, any> = {};
+  for (const e of events) if (e.type === "med" && e.name) { const k = String(e.name).toLowerCase(); if (!latestMed[k] || e.start > latestMed[k].start) latestMed[k] = e; }
+  for (const e of Object.values(latestMed)) {
+    if (!(+e.remindEvery > 0)) continue;
+    const due = e.start + e.remindEvery * HR;
+    if (e.remindUntil && due > e.remindUntil + 60000) continue;
+    if (now >= due - 2 * 60000 && now - due < 30 * 60000) await notify(`med:${e.id}`, "Hora do remédio: " + e.name, (e.dose ? e.dose + " · " : "") + "última dose às " + hm(e.start), "inicio", "remedios");
+  }
+  // tempo desde a última mamada (opcional, por aparelho: 2, 3 ou 4 h)
+  const feeds = events.filter((e) => e.type === "feed" && e.start <= now).sort((a, b) => b.start - a.start);
+  const lf = feeds[0];
+  if (lf && !(lf.kind === "peito" && lf.end == null)) for (const h of [2, 3, 4]) {
+    const gap = now - lf.start;
+    if (gap >= h * HR && gap < h * HR + 30 * 60000) await notify(`feed:${lf.id}:${h}`, `Última mamada há ${h} horas`, "Foi às " + hm(lf.start) + ".", "inicio", "mamada", (s) => (+(s.prefs || {}).mamadaH || 3) === h);
+  }
+  // resumo do dia às 21h (opcional)
+  if (L.hour >= 21) {
+    const d0 = toMs(L.iso), d1 = d0 + DAY;
+    let sleep = 0; for (const e of events) if (e.type === "sleep") { const a = Math.max(e.start, d0), b = Math.min(e.end ?? now, d1, now); if (b > a) sleep += b - a; }
+    const today = events.filter((e) => e.start >= d0 && e.start < d1);
+    const nf = today.filter((e) => e.type === "feed").length, nd = today.filter((e) => e.type === "diaper").length;
+    if (nf + nd + sleep > 0) { const sh = Math.floor(sleep / HR), sm = Math.round((sleep % HR) / 60000);
+      await notify(`sum:${L.iso}`, `O dia de ${baby}`, `${sh}h${String(sm).padStart(2, "0")} de sono · ${nf} ${nf === 1 ? "mamada" : "mamadas"} · ${nd} ${nd === 1 ? "fralda" : "fraldas"}`, "diario", "resumo"); }
+  }
+  // mesversário e nova fase
+  if (cfg.birth && L.hour >= 9) {
+    const b = new Date(cfg.birth + "T12:00:00Z"), t = new Date(L.iso + "T12:00:00Z");
+    const months = (t.getUTCFullYear() - b.getUTCFullYear()) * 12 + t.getUTCMonth() - b.getUTCMonth();
+    const lastDay = new Date(Date.UTC(t.getUTCFullYear(), t.getUTCMonth() + 1, 0)).getUTCDate();
+    if (months > 0 && t.getUTCDate() === Math.min(b.getUTCDate(), lastDay)) {
+      const fases: Record<number, string> = { 1: "Primeiros sorrisos", 3: "Descobrindo as mãos", 6: "Hora de sentar e provar", 9: "Explorador", 12: "Primeiros passos", 18: "Pequeno falante", 24: "Dois anos", 36: "Três anos ou mais" };
+      const y = Math.floor(months / 12), m = months % 12, idade = y ? `${y} ${y > 1 ? "anos" : "ano"}${m ? ` e ${m} ${m > 1 ? "meses" : "mês"}` : ""}` : `${months} ${months > 1 ? "meses" : "mês"}`;
+      await notify(`mes:${L.iso}`, `Hoje ${baby} completa ${idade}!`, fases[months] ? `Começa a fase "${fases[months]}". Veja o que muda no app.` : "Que tal registrar uma conquista de hoje?", fases[months] ? "fases" : "inicio", "marcos");
+    }
   }
   return sent;
 }
