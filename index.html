@@ -455,6 +455,33 @@ img[data-p]:not([src]){opacity:0}
 .swatches input{position:absolute;opacity:0;inset:0;margin:0}
 .swatches span{display:block;width:34px;height:34px;border-radius:50%;background:var(--c);box-shadow:inset 0 0 0 3px var(--surface)}
 .swatches input:checked+span{outline:3px solid var(--c);outline-offset:2px}
+/* ===== v4: offline, fraldas, enxoval ===== */
+.offline{display:flex;align-items:center;gap:10px;background:color-mix(in srgb,var(--warn) 14%,var(--surface));border-radius:14px;padding:10px 12px;font-size:13.5px}
+.offline b{display:block;font-size:14px}
+.szchart{display:flex;flex-direction:column;gap:6px}
+.szrow{display:grid;grid-template-columns:84px minmax(0,1fr) 72px;gap:10px;align-items:center;border:0;background:none;padding:8px 6px;border-radius:12px;cursor:pointer;text-align:left;color:var(--ink);width:100%}
+.szrow:hover{background:var(--surface2)}
+.szrow.on{background:var(--accent-soft)}
+.szrow .sz b{display:block;font-family:var(--display);font-size:17px}.szrow .sz span{font-size:11px;color:var(--muted)}
+.szbar{position:relative;height:14px;border-radius:99px;background:var(--surface2);overflow:visible}
+.szbar i{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:var(--c);min-width:4px;transition:width .6s var(--ease)}
+.szbar s{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink);opacity:.35;border-radius:2px;text-decoration:none}
+.szn{text-align:right;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}.szn b{color:var(--ink);font-size:16px}
+.enx-sum{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.enx-leg{display:flex;flex-direction:column;gap:6px;font-size:14px}
+.enx-leg i{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--c);margin-right:8px}
+.catbars{display:flex;flex-direction:column;gap:4px}
+.catbar{display:grid;grid-template-columns:110px minmax(0,1fr) 44px;gap:10px;align-items:center;border:0;background:none;padding:6px 4px;border-radius:10px;cursor:pointer;color:var(--ink);text-align:left;font-size:13.5px}
+.catbar:hover{background:var(--surface2)}
+.catbar .cb{display:flex;height:10px;border-radius:99px;background:var(--surface2);overflow:hidden}
+.catbar .cb i{display:block;height:100%;background:var(--c);transition:width .6s var(--ease)}
+.catbar .cc{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums;font-size:13px}
+.enx-row{flex-wrap:nowrap}
+.enx-row .main{min-width:0}
+.ttl.done{color:var(--muted);text-decoration:line-through;text-decoration-thickness:1px}
+.stbtn{border:0;border-radius:999px;padding:7px 12px;font-weight:700;font-size:12.5px;cursor:pointer;white-space:nowrap;background:color-mix(in srgb,var(--c) 16%,transparent);color:var(--c);min-width:96px}
+[data-act="stbtn"]{}
+@media (max-width:380px){.catbar{grid-template-columns:88px minmax(0,1fr) 40px}.szrow{grid-template-columns:70px minmax(0,1fr) 64px}.stbtn{min-width:84px;padding:7px 9px}}
 </style>
 <script>try{var t=localStorage.getItem("ddb-theme");if(t&&t!=="auto")document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
 </head>
@@ -531,7 +558,7 @@ const VAX=[
 const WHO_M=[0,1,2,3,4,5,6,7,8,9,10,11,12,15,18,21,24];
 const WHO_W={p3:[2.5,3.4,4.4,5.1,5.6,6.1,6.4,6.7,7.0,7.2,7.5,7.7,7.8,8.4,8.9,9.5,9.8],p50:[3.3,4.5,5.6,6.4,7.0,7.5,7.9,8.3,8.6,8.9,9.2,9.4,9.6,10.3,10.9,11.5,12.2],p97:[4.3,5.7,7.0,7.9,8.6,9.2,9.7,10.2,10.5,10.9,11.2,11.5,11.8,12.6,13.3,14.0,14.8]};
 const WHO_L={p3:[46.3,51.1,54.7,57.6,60.0,61.9,63.6,65.1,66.5,67.7,69.0,70.2,71.3,74.4,77.2,79.7,82.1],p50:[49.9,54.7,58.4,61.4,63.9,65.9,67.6,69.2,70.6,72.0,73.3,74.5,75.7,79.1,82.3,85.1,87.8],p97:[53.4,58.4,62.2,65.3,67.8,69.9,71.6,73.2,74.7,76.2,77.5,78.9,80.2,83.9,87.3,90.4,93.6]};
-const INV_CATS=[['fralda','Fraldas'],['higiene','Higiene'],['alimentacao','Alimentação'],['roupa','Roupas'],['saude','Remédios e saúde'],['passeio','Passeio e quarto'],['brinquedo','Brinquedos'],['outro','Outros']];
+const INV_CATS=[['fralda','Fraldas'],['lenco','Lenços umedecidos'],['higiene','Higiene'],['alimentacao','Alimentação'],['roupa','Roupas'],['saude','Remédios e saúde'],['passeio','Passeio e quarto'],['brinquedo','Brinquedos'],['outro','Outros']];
 const AG_TYPES=[['consulta','Consulta'],['vacina','Vacina'],['exame','Exame'],['outro','Outro']];
 const EX_CATS=[['sangue','Sangue'],['urina','Urina e fezes'],['imagem','Imagem (ultrassom, raio-X)'],['triagem','Triagem neonatal'],['sentidos','Audição e visão'],['coracao','Coração'],['outro','Outro']];
 const EX_ST=[['pedido','Pedido'],['agendado','Agendado'],['realizado','Feito'],['resultado','Com resultado']];
@@ -541,7 +568,7 @@ const MS_SUGG=['Primeiro sorriso','Sustentou a cabeça','Primeira risada','Rolou
 const EVC={sleep:'var(--sleep)',feed:'var(--feed)',diaper:'var(--diaper)',med:'var(--health)',temp:'var(--health)',bath:'var(--other)',note:'var(--other)'};
 
 /* ============ estado ============ */
-const S={mode:null,loaded:{},cfg:undefined,ev:{},inv:[],growth:[],agenda:[],exams:[],photos:[],albums:[],albnotes:{},vax:{},ms:[],tab:lsGet('bebe-tab')||'hoje',day:dayStart(Date.now()),hist:null,histEv:[],stale:false,ro:false};
+const S={mode:null,loaded:{},cfg:undefined,ev:{},inv:[],growth:[],agenda:[],exams:[],enx:[],photos:[],albums:[],albnotes:{},vax:{},ms:[],tab:lsGet('bebe-tab')||'hoje',day:dayStart(Date.now()),hist:null,histEv:[],stale:false,ro:false};
 let WHO='';
 
 /* ============ conexão com o Supabase ============ */
@@ -550,26 +577,62 @@ const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 const VAPID='BJDq6dRsXVri7GEmWuQp_wTXYz68C37K2EV0ikxQqs5Fwnh-u74mUF1PMTao-Flm7_EzxAbhG9X3S3IDHWkh1PE';
 const sb=supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 let ME=null,FAM=null,INVITE='',MEMBERS=[],AUTH='loading';
+/* ============ conexão com o Supabase + modo offline ============ */
 const cache=new Map(),subs=[],pending=new Map();
+let OUTBOX=[],FLUSHING=false,CACHE_T=null;
+const outKey=()=>'ddb-out-'+(ME?.id||'x'),cacheKey=()=>'ddb-cache-'+FAM;
+const isNet=e=>!navigator.onLine||/fetch|network|load failed|timeout|offline|aborted/i.test(String(e&&(e.message||e)||''));
 const kids=pre=>{const out=[];pre+='/';cache.forEach((d,p)=>{if(p.startsWith(pre)&&!p.slice(pre.length).includes('/'))out.push({...d,id:p.slice(pre.length)})});return out};
 const deliver=s=>s.doc?s.cb(cache.has(s.path)?cache.get(s.path):null):s.cb(kids(s.path));
-const touch=path=>subs.forEach(s=>{if(s.doc?s.path===path:(path.startsWith(s.path+'/')&&!path.slice(s.path.length+1).includes('/')))deliver(s)});
+const touch=path=>{subs.forEach(s=>{if(s.doc?s.path===path:(path.startsWith(s.path+'/')&&!path.slice(s.path.length+1).includes('/')))deliver(s)});saveCache()};
+function saveNow(){clearTimeout(CACHE_T);if(!FAM)return;try{localStorage.setItem(cacheKey(),JSON.stringify(Object.fromEntries(cache)))}catch(e){}}
+function saveCache(){clearTimeout(CACHE_T);CACHE_T=setTimeout(saveNow,800)}
+addEventListener('pagehide',saveNow);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')saveNow()});
+function loadCache(){try{const o=JSON.parse(localStorage.getItem(cacheKey())||'{}');Object.entries(o).forEach(([k,v])=>{if(!cache.has(k))cache.set(k,v)})}catch(e){}
+ OUTBOX.forEach(x=>x.op==='del'?cache.delete(x.path):cache.set(x.path,x.data))}
+const mine=p=>(pending.get(p)||0)>Date.now()-15000||OUTBOX.some(x=>x.path===p);
 async function fetchSub(s){
  let q=sb.from('docs').select('path,data,deleted').eq('family_id',FAM);
  q=s.doc?q.eq('path',s.path):q.like('path',s.path+'/%').eq('deleted',false);
- const {data,error}=await q;if(error){onDbErr(error);return}
- const fresh=p=>(pending.get(p)||0)>Date.now()-15000;
- if(!s.doc){const pre=s.path+'/';[...cache.keys()].forEach(p=>{if(p.startsWith(pre)&&!p.slice(pre.length).includes('/')&&!fresh(p))cache.delete(p)})}
- (data||[]).forEach(r=>{if(fresh(r.path))return;r.deleted?cache.delete(r.path):cache.set(r.path,r.data)});
- markFresh();deliver(s);
+ let res;try{res=await q}catch(e){res={error:e}}
+ if(res.error){onDbErr(res.error);if(!s.doc||cache.has(s.path))deliver(s);return}
+ if(!s.doc){const pre=s.path+'/';[...cache.keys()].forEach(p=>{if(p.startsWith(pre)&&!p.slice(pre.length).includes('/')&&!mine(p))cache.delete(p)})}
+ (res.data||[]).forEach(r=>{if(mine(r.path))return;r.deleted?cache.delete(r.path):cache.set(r.path,r.data)});
+ if(s.doc&&!(res.data||[]).length&&!mine(s.path))cache.delete(s.path);
+ markFresh();deliver(s);saveCache();
 }
 const refetchAll=()=>subs.forEach(fetchSub);
+function queue(op,path,data){OUTBOX=OUTBOX.filter(x=>x.path!==path);OUTBOX.push({op,path,data,ts:Date.now()});try{localStorage.setItem(outKey(),JSON.stringify(OUTBOX))}catch(e){}render()}
+const row=(path,data,del,ts)=>({family_id:FAM,path,data:del?{}:data,deleted:!!del,updated_at:new Date(ts||Date.now()).toISOString(),updated_by:ME.id});
+async function put(op,path,data){
+ if(OUTBOX.length&&!FLUSHING)flush();
+ if(!navigator.onLine){queue(op,path,data);return}
+ let error;try{({error}=await sb.from('docs').upsert(row(path,data,op==='del')))}catch(e){error=e}
+ if(error){if(isNet(error)){queue(op,path,data);return}refetchAll();throw error}
+ if(OUTBOX.some(x=>x.path===path)){OUTBOX=OUTBOX.filter(x=>x.path!==path);try{localStorage.setItem(outKey(),JSON.stringify(OUTBOX))}catch(e){}}
+}
+async function flush(){
+ if(FLUSHING||!OUTBOX.length||!FAM||!navigator.onLine)return;FLUSHING=true;const n=OUTBOX.length;let sent=0;
+ try{while(OUTBOX.length){const x=OUTBOX[0];let error;try{({error}=await sb.from('docs').upsert(row(x.path,x.data,x.op==='del',x.ts)))}catch(e){error=e}
+  if(error&&isNet(error))break;if(error)console.warn('registro descartado',x.path,error);else sent++;
+  OUTBOX.shift();try{localStorage.setItem(outKey(),JSON.stringify(OUTBOX))}catch(e){}}}
+ finally{FLUSHING=false}
+ if(sent)toast(sent>1?`${sent} registros feitos sem internet foram enviados`:'Registro feito sem internet foi enviado');
+ if(!OUTBOX.length&&n){S.stale=false;refetchAll()}render();
+}
 const store={
- col(path,cb){const s={path,cb};subs.push(s);fetchSub(s);return()=>{const i=subs.indexOf(s);if(i>=0)subs.splice(i,1)}},
- doc(path,cb){const s={path,cb,doc:true};subs.push(s);fetchSub(s);return()=>{const i=subs.indexOf(s);if(i>=0)subs.splice(i,1)}},
- async set(path,data){pending.set(path,Date.now());cache.set(path,data);touch(path);const{error}=await sb.from('docs').upsert({family_id:FAM,path,data,deleted:false,updated_at:new Date().toISOString(),updated_by:ME.id});if(error){refetchAll();throw error}},
- async del(path){pending.set(path,Date.now());cache.delete(path);touch(path);const{error}=await sb.from('docs').upsert({family_id:FAM,path,data:{},deleted:true,updated_at:new Date().toISOString(),updated_by:ME.id});if(error){refetchAll();throw error}}
+ col(path,cb){const s={path,cb};subs.push(s);deliver(s);fetchSub(s);return()=>{const i=subs.indexOf(s);if(i>=0)subs.splice(i,1)}},
+ doc(path,cb){const s={path,cb,doc:true};subs.push(s);if(cache.has(path))deliver(s);fetchSub(s);return()=>{const i=subs.indexOf(s);if(i>=0)subs.splice(i,1)}},
+ async set(path,data){pending.set(path,Date.now());cache.set(path,data);touch(path);saveNow();await put('set',path,data)},
+ async del(path){pending.set(path,Date.now());cache.delete(path);touch(path);saveNow();await put('del',path,null)},
+ async setMany(list){list.forEach(([p,d])=>{pending.set(p,Date.now());cache.set(p,d)});subs.forEach(deliver);saveCache();
+  if(!navigator.onLine){list.forEach(([p,d])=>queue('set',p,d));return}
+  let error;try{({error}=await sb.from('docs').upsert(list.map(([p,d])=>row(p,d))))}catch(e){error=e}
+  if(error){if(isNet(error)){list.forEach(([p,d])=>queue('set',p,d));return}refetchAll();throw error}}
 };
+window.addEventListener('online',()=>{flush();if(FAM)refetchAll();render()});
+window.addEventListener('offline',()=>render());
+setInterval(()=>{if(OUTBOX.length)flush()},30000);
 let staleTimer=null;
 function markFresh(){if(S.stale){S.stale=false;render()}}
 function onDbErr(e){console.warn('db',e);if(!S.stale){S.stale=true;render()}}
@@ -625,7 +688,8 @@ function dayStats(t0){
 }
 function diaperStats(){
  const now=Date.now(),fr=S.inv.filter(i=>i.cat==='fralda');
- const total=fr.reduce((s,i)=>s+(+i.qty||0),0);
+ const act=fr.find(i=>i.id===S.cfg?.diaperItem),pool=act?fr.filter(i=>normSize(i.size)===normSize(act.size)):fr;
+ const total=pool.reduce((s,i)=>s+(+i.qty||0),0);
  const evs=allEv().filter(e=>e.type==='diaper'&&e.start<=now);
  const today=evs.filter(e=>e.start>=dayStart(now)).length;
  const last7=evs.filter(e=>e.start>=now-7*DAY);
@@ -710,6 +774,7 @@ const ICP={
  image:'<rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/>',
  heartf:'<path d="M12 20.5s-8-5-8-10.7A4.4 4.4 0 0 1 12 7.2a4.4 4.4 0 0 1 8 2.6c0 5.7-8 10.7-8 10.7z" fill="currentColor"/>',
  pen:'<path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>',
+ cloudoff:'<path d="M3 3l18 18"/><path d="M8.5 6.4A5.5 5.5 0 0 1 17.1 8.5 3.5 3.5 0 0 1 19.8 14M17 17H7a4 4 0 0 1-1.3-7.8"/>',
  cake:'<path d="M4 21h16v-8H4zM4 16.5c2 1.5 4 1.5 6 0s4-1.5 6 0 4 1.5 4 0M12 13V9.5"/><path d="M12 7c-1-1-1-2.2 0-4 1 1.8 1 3 0 4z"/>'
 };
 const ic=n=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICP[n]||''}</svg>`;
@@ -835,21 +900,11 @@ function bars(vals,labels,color,o={}){
 /* ---------- Estoque ---------- */
 VIEWS.estoque=()=>{
  const dst=diaperStats(),sh=shopping();
- const groups=INV_CATS.map(([k,l])=>[k,l,S.inv.filter(i=>(i.cat||'outro')===k).sort((a,b)=>a.name.localeCompare(b.name))]).filter(g=>g[2].length&&g[0]!=='fralda');
+ const groups=INV_CATS.map(([k,l])=>[k,l,S.inv.filter(i=>(i.cat||'outro')===k).sort((a,b)=>a.name.localeCompare(b.name))]).filter(g=>g[2].length&&g[0]!=='fralda'&&g[0]!=='lenco');
  const pct=dst.days!=null?Math.min(100,dst.days/14*100):0;
  return`
  <div class="sec-h sec-top"><button class="btn primary" data-act="invAdd">Adicionar item</button></div>
- <div class="card"><div class="card-h"><h2>Fraldas</h2><span class="pill ${dst.st}">${dst.label}</span></div>
-  <div class="stats" style="margin-bottom:14px">
-   <div class="stat"><div class="v">${dst.total}</div><div class="k">em casa</div></div>
-   <div class="stat"><div class="v">${dst.today}</div><div class="k">usadas hoje</div></div>
-   <div class="stat"><div class="v">${num(dst.avg)}</div><div class="k">por dia ${dst.est?'(estimativa pela idade)':'(média de 7 dias)'}</div></div>
-   <div class="stat"><div class="v">${dst.days!=null&&dst.items.length?Math.floor(dst.days):'—'}</div><div class="k">dias até acabar</div></div>
-  </div>
-  <div class="meter" style="--c:var(--${dst.st==='bad'?'bad':dst.st==='warn'?'warn':'ok'})"><i style="width:${pct}%"></i></div>
-  <div class="hint" style="margin-top:6px">A barra cheia equivale a 2 semanas de fraldas. Cada troca registrada desconta 1 fralda do pacote escolhido.</div>
-  <div class="rows" style="margin-top:8px">${dst.items.length?dst.items.map(invRow).join(''):`<div class="empty" style="margin-top:8px">Nenhum pacote cadastrado. <button class="linkbtn" data-act="invAdd" data-id="fralda">Cadastrar fraldas</button></div>`}</div>
- </div>
+ <button class="mtile" data-act="tab" data-id="fraldas"><span class="ic" style="--c:var(--diaper)">${ic('diaper')}</span><span class="tx"><b>Fraldas e lenços</b><span>${dst.items.length?`${dst.total} fraldas ${activeSize()||''} · uns ${Math.floor(dst.days||0)} dias`:'Quantidade por tamanho e lenços'}</span></span>${dst.st==='bad'||dst.st==='warn'?'<span class="pill bad">!</span>':''}<span class="chev">${ic('chev')}</span></button>
  ${sh.length?`<div class="card"><div class="card-h"><h2>Lista de compras</h2><span class="small muted">itens no mínimo ou abaixo</span></div><div class="rows">${sh.map(i=>`<div class="row"><div class="main"><div class="ttl">${esc(i.name)}${i.size?' '+esc(i.size):''}</div><div class="small muted">restam ${i.qty||0} · mínimo ${i.min} ${esc(i.unit||'')}</div></div><button class="btn sm" data-act="invBuy" data-id="${i.id}">Registrar compra</button></div>`).join('')}</div></div>`:''}
  ${groups.length?`<div class="grid g2">${groups.map(([k,l,items])=>`<div class="card"><div class="card-h"><h2>${l}</h2><span class="small muted">${items.length} ${items.length>1?'itens':'item'}</span></div><div class="rows">${items.map(invRow).join('')}</div></div>`).join('')}</div>`:`<div class="empty">Cadastre também lenços, pomada, roupas, mamadeiras, remédios e o que mais quiser controlar. Defina um <b>mínimo</b> e o item entra na lista de compras quando chegar nele.</div>`}`;
 };
@@ -1187,7 +1242,7 @@ A.exAdd=()=>openExam({reqDate:isoDate(Date.now())},true);
 A.exEdit=id=>{const e=S.exams.find(x=>x.id===id);if(e)openExam(e,false)};
 A.exScreen=k=>{const e=S.exams.find(x=>x.screen===k);if(e)return openExam(e,false);const sc=SCREEN.find(x=>x[0]===k);openExam({name:sc[1],cat:'triagem',screen:k,status:'realizado',date:isoDate(Date.now())},true)};
 A.xfDel=id=>{XF=XF.filter(f=>fpath(f)!==id);const el=$('#x-files');if(el)el.innerHTML=filesHtml()};
-async function uploadFiles(input){const files=[...input.files];input.value='';
+async function uploadFiles(input){const files=[...input.files];input.value='';if(!navigator.onLine){toast('Para anexar arquivos é preciso internet.',true);return}
  for(const f of files){if(f.size>20*1024*1024){toast(f.name+' passa de 20 MB.',true);continue}
   UPLOADING++;const el=$('#x-files');if(el)el.insertAdjacentHTML('beforeend',`<span class="file" data-up>Enviando ${esc(f.name)}…</span>`);
   try{const safe=f.name.normalize('NFD').replace(/[^\w.-]+/g,'_').slice(-60);const path=`${FAM}/${Date.now().toString(36)}-${safe}`;const{error}=await sb.storage.from('files').upload(path,f,{contentType:f.type||undefined});if(error)throw{code:/mime|type/i.test(error.message)?'unsupported_type':/size|large/i.test(error.message)?'too_large':'x'};XF.push({path,name:f.name,type:f.type})}
@@ -1286,7 +1341,7 @@ document.addEventListener('input',e=>{if(e.target.id==='sndVol'){SND.vol=+e.targ
 let toastT;function toast(msg,err){const t=$('#toast');t.textContent=msg;t.className='toast'+(err?' err':'');t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,err?4500:2200)}
 
 /* ============ render (v2: app com navegação inferior) ============ */
-const PAGES={inicio:'Início',diario:'Diário',sons:'Sons',menu:'Menu',estoque:'Estoque',crescimento:'Crescimento',agenda:'Agenda',exames:'Exames',saude:'Vacinas e saúde',fases:'Fase e marcos',ajustes:'Ajustes',tutorial:'Como usar',album:'Álbum'};
+const PAGES={inicio:'Início',diario:'Diário',sons:'Sons',menu:'Menu',estoque:'Estoque',crescimento:'Crescimento',agenda:'Agenda',exames:'Exames',saude:'Vacinas e saúde',fases:'Fase e marcos',ajustes:'Ajustes',tutorial:'Como usar',album:'Álbum',fraldas:'Fraldas e lenços',enxoval:'Enxoval'};
 const ALIAS={hoje:'inicio',registros:'diario'};
 const pageOf=t=>{t=ALIAS[t]||t;return PAGES[t]?t:'inicio'};
 const TABS=Object.entries(PAGES);
@@ -1302,12 +1357,13 @@ function render(){
  S.tab=pageOf(S.tab);
  const a=age(),tab=S.tab,enter=LAST_TAB!==tab;LAST_TAB=tab;
  const scrollY=window.scrollY,dst=diaperStats();
- const banner=S.stale?`<div class="banner">Sem conexão com os dados agora. O que aparece pode estar desatualizado.</div>`:'';
+ const off=!navigator.onLine,nq=OUTBOX.length;
+ const banner=(off||nq)?`<div class="offline"><span class="ic" style="--c:var(--warn)">${ic('cloudoff')}</span><div><b>${off?'Sem internet':'Enviando registros…'}</b>${nq?`${nq} ${nq>1?'registros guardados':'registro guardado'} no celular${off?', enviados quando a conexão voltar.':'.'}`:'Pode registrar normalmente. Tudo é enviado quando a conexão voltar.'}</div></div>`:S.stale?`<div class="banner">Não deu para atualizar agora. Mostrando os últimos dados salvos.</div>`:'';
  const menuBadge=dst.st==='bad'||dst.st==='warn'||shopping().length>0||VAX.some(v=>vaxStatus(v).s==='late');
  const bar=tab==='inicio'
   ?`<span class="logo">${LOGO}</span><div class="grow"><div class="t1">${esc(S.cfg.name||'Bebê')}</div><div class="t2">${esc(ageText(a))}</div></div><button class="who-chip" data-act="tab" data-id="ajustes">${esc(WHO||'Você')}</button>`
   :ROOT.includes(tab)?`<div class="grow"><h1>${PAGES[tab]}</h1></div>${tab==='diario'?'<button class="btn sm" data-act="noteAdd">Anotação</button>':''}${tab==='menu'?`<button class="icon-btn" data-act="themeToggle" aria-label="${isDark()?'Usar tema claro':'Usar tema escuro'}">${ic(isDark()?'sun':'moon')}</button>`:''}`
-  :`<button class="back" ${tab==='album'&&ALB.open?'data-act="albBack"':'data-act="tab" data-id="menu"'} aria-label="Voltar">${ic('back')}</button><div class="grow"><h1>${tab==='album'?esc(albTitle()):PAGES[tab]}</h1></div>${tab==='album'&&!ALB.open?`<button class="icon-btn" data-act="albAdd" aria-label="Adicionar fotos">${ic('plus')}</button>`:''}`;
+  :`<button class="back" ${tab==='album'&&ALB.open?'data-act="albBack"':'data-act="tab" data-id="menu"'} aria-label="Voltar">${ic('back')}</button><div class="grow"><h1>${tab==='album'?esc(albTitle()):PAGES[tab]}</h1></div>${tab==='album'&&!ALB.open?`<button class="icon-btn" data-act="albAdd" aria-label="Adicionar fotos">${ic('plus')}</button>`:''}${tab==='enxoval'&&S.enx.length?`<button class="icon-btn" data-act="enxAdd" aria-label="Adicionar item">${ic('plus')}</button>`:''}`;
  const nb=(id,i,l,badge)=>`<button class="nb" data-act="tab" data-id="${id}"${(tab===id||(id==='menu'&&!ROOT.includes(tab)))?' aria-current="page"':''}>${ic(i)}${badge?'<span class="badge"></span>':''}${l}</button>`;
  app.innerHTML=`<header class="appbar"><div class="in">${bar}</div></header>
  <main class="wrap view${enter?' view-enter':''}">${banner}${VIEWS[tab]()}</main>
@@ -1329,7 +1385,7 @@ function homeAlerts(){
  if(a&&a.m>0&&a.d===0){const ph=phaseOf(a),nova=PHASES.some(p=>p.from===a.m);out.push({c:'var(--growth)',i:'cake',t:`Hoje ${S.cfg.name||'o bebê'} completa ${a.m} ${a.m>1?'meses':'mês'}!`,s:nova?'Começa a fase: '+ph.name:'Que tal guardar uma conquista de hoje?',a:nova?'tab':'msAdd',id:'fases',l:nova?'Ver':'Registrar'})}
  const t0=dayStart(now);upcoming().filter(x=>dateOnly(x.date)<t0+2*DAY).slice(0,2).forEach(x=>{const hoje=dayStart(dateOnly(x.date))===t0;out.push({c:'var(--accent)',i:x._exam?'flask':'cal',t:(hoje?'Hoje':'Amanhã')+(x.time?' às '+x.time:'')+': '+x.title,s:x.place||'',a:'tab',id:x._exam?'exames':'agenda',l:'Ver'})});
  const d=diaperStats();
- if(!d.items.length)out.push({c:'var(--diaper)',i:'diaper',t:'Cadastre as fraldas',s:'Assim o app avisa antes de acabar.',a:'invAdd',id:'fralda',l:'Cadastrar'});
+ if(!d.items.length)out.push({c:'var(--diaper)',i:'diaper',t:'Cadastre as fraldas',s:'Por tamanho, para o app avisar antes de acabar.',a:'tab',id:'fraldas',l:'Cadastrar'});
  else if(d.st==='bad'||d.st==='warn')out.push({c:`var(--${d.st==='bad'?'bad':'warn'})`,i:'diaper',t:d.st==='bad'?'Fraldas acabando':'Comprar fraldas em breve',s:`Restam ${d.total}, dá para uns ${Math.floor(d.days)} dias`,a:'buyDiaper',l:'Comprei'});
  const sh=shopping();if(sh.length)out.push({c:'var(--warn)',i:'bag',t:'Lista de compras',s:sh.map(i=>i.name).slice(0,3).join(', '),a:'tab',id:'estoque',l:'Ver'});
  const late=VAX.filter(v=>vaxStatus(v).s==='late'),soon=VAX.filter(v=>vaxStatus(v).s==='soon');
@@ -1376,7 +1432,9 @@ VIEWS.menu=()=>{
   ${T('agenda','cal','var(--accent)','Agenda',up?`Próximo: ${fmtD(dateOnly(up.date))} · ${up.title}`:'Consultas e compromissos')}
   ${T('crescimento','growth','var(--growth)','Crescimento',g?`${num(g.w,2)} kg em ${fmtD(dateOnly(g.date))}`:'Peso, altura e curvas')}</div>
  <div class="mgroup"><div class="label">Casa</div>
-  ${T('estoque','box','var(--diaper)','Estoque',d.items.length?`${d.total} fraldas${d.days!=null?' · uns '+Math.floor(d.days)+' dias':''}`:'Fraldas e itens do bebê',d.st==='bad'||d.st==='warn'?'!':'')}</div>
+  ${T('fraldas','diaper','var(--diaper)','Fraldas e lenços',d.items.length?`${d.total} fraldas ${activeSize()||''} · uns ${Math.floor(d.days||0)} dias`:'Quantidade por tamanho e lenços',d.st==='bad'||d.st==='warn'?'!':'')}
+  ${T('enxoval','bag','var(--feed)','Enxoval',S.enx.length?(()=>{const t=enxStats(S.enx);return `${Math.round(t.done/t.n*100)}% pronto · faltam ${t.n-t.done}`})():'Lista sugerida e sua própria lista')}
+  ${T('estoque','box','var(--other)','Estoque',S.inv.filter(i=>i.cat!=='fralda'&&i.cat!=='lenco').length?`${S.inv.filter(i=>i.cat!=='fralda'&&i.cat!=='lenco').length} itens · lista de compras`:'Higiene, remédios e outros itens',shopping().length?String(shopping().length):'')}</div>
  <div class="mgroup"><div class="label">Bebê</div>
   ${T('album','image','var(--feed)','Álbum de fotos',S.photos.length?`${S.photos.length} ${S.photos.length===1?'foto':'fotos'} · ${S.albums.length} ${S.albums.length===1?'álbum':'álbuns'}`:'Fotos separadas por fase')}
   ${T('fases','sprout','var(--growth)','Fase e marcos',age()?phaseOf(age()).name:'')}</div>
@@ -1395,6 +1453,9 @@ VIEWS.tutorial=()=>{const H=(i,c,t,st)=>`<details class="howto"><summary><span c
  ${H('flask','var(--health)','Exames',['<b>+ › Exame</b> para guardar o pedido, com foto ou PDF.','Com data e hora, vocês recebem aviso na véspera e 2 h antes.','Saiu o resultado? Abra o exame, mude para <b>Com resultado</b> e anexe.'])}
  ${H('syringe','var(--health)','Vacinas',['Em <b>Menu › Vacinas e saúde</b> está a caderneta pela idade.','Toque na vacina para marcar como aplicada.'])}
  ${H('music','var(--sleep)','Sons para acalmar',['Abra <b>Sons</b> e toque em um som. Toque de novo para parar.','Escolha quando desligar: 15, 30 ou 60 minutos.','Funciona sem internet. No iPhone, deixe o app aberto na tela.'])}
+ ${H('diaper','var(--diaper)','Fraldas por tamanho e lenços',['Em <b>Menu › Fraldas e lenços</b>, toque em cada tamanho para dizer quantas tem e a meta.','Marque o tamanho em uso: cada troca desconta dele.','Nos lenços, toque em <b>Abri um pacote</b>. O app calcula quanto dura.'])}
+ ${H('bag','var(--feed)','Enxoval',['Em <b>Menu › Enxoval</b>, comece com a lista sugerida ou do zero.','Toque na situação do item para passar de Falta › Pesquisando › Comprado › Ganhou.','Toque no nome para mudar quantidade, tamanho, valor e observação.'])}
+ ${H('cloudoff','var(--warn)','Sem internet',['Pode registrar normalmente: fica guardado no celular.','Quando a conexão volta, tudo é enviado sozinho. Fotos e anexos precisam de internet.'])}
  ${H('image','var(--feed)','Álbum de fotos',['Em <b>Menu › Álbum</b> (ou <b>+ › Foto</b>), escolha as fotos do celular.','Elas vão sozinhas para a fase certa, pela data em que foram tiradas.','Crie álbuns próprios, escreva as memórias de cada fase e marque as favoritas com o coração.'])}
  ${H('note','var(--other)','Corrigir ou apagar',['Toque no registro na Início ou no Diário.','Mude e salve, ou apague.'])}
  ${H('users','var(--accent)','Usar em família',['Em <b>Menu › Ajustes</b>, copie o código de convite.','A outra pessoa cria a conta e entra com o código.','O que um registra aparece na hora para o outro.'])}
@@ -1597,6 +1658,7 @@ function albUpload(fl){const files=[...fl].filter(f=>/^image\//.test(f.type)||/\
   ${fld('Data','<input type="date" name="date" id="u-date" value="'+isoDate(Date.now())+'">')}`,
   onSave:fd=>{uploadPhotos(files,fd);setTimeout(()=>urls.forEach(u=>URL.revokeObjectURL(u)),3000)}})}
 async function uploadPhotos(files,fd){
+ if(!navigator.onLine){toast('Para enviar fotos é preciso internet.',true);return}
  if(UPL){toast('Espere o envio atual terminar.',true);return}
  UPL={n:files.length,done:0};upbar();let fail=0,heic=0;const albumId=fd.albumId||'';
  for(const f of files){try{
@@ -1647,6 +1709,111 @@ function memoryCard(){if(!S.photos.length)return'';const old=S.photos.filter(p=>
  VIEWLIST=pool;return`<button class="memory" data-act="vw" data-id="${pool.indexOf(p)}">${imgTag(p.path,'',p.caption||'')}<span class="tag">Lembrança</span><span class="mo"><b>${esc(p.caption||quando)}</b><span>${p.caption?quando+' · ':''}${esc(photoAge(p))}</span></span></button>`}
 A.albQuick=()=>{closeModal();A.albAdd()};
 
+/* ---------- fraldas e lenços ---------- */
+const SIZES=['RN','P','M','G','XG','XXG'];
+const SIZE_KG={RN:'até 4,5 kg',P:'3 a 6 kg',M:'5,5 a 9,5 kg',G:'9 a 12,5 kg',XG:'11 a 15 kg',XXG:'acima de 14 kg'};
+const SIZE_GOAL={RN:60,P:300,M:600,G:600,XG:300,XXG:150};
+const sizeByKg=kg=>kg<4.5?'RN':kg<6?'P':kg<9.5?'M':kg<12.5?'G':kg<15?'XG':'XXG';
+const normSize=s=>{s=String(s||'').toUpperCase().replace(/\s/g,'');return SIZES.includes(s)?s:''};
+const frBySize=sz=>S.inv.filter(i=>i.cat==='fralda'&&normSize(i.size)===sz);
+const sizeQty=sz=>frBySize(sz).reduce((s,i)=>s+(+i.qty||0),0);
+const sizeGoal=sz=>{const it=frBySize(sz).find(i=>+i.goal>0);return it?+it.goal:SIZE_GOAL[sz]};
+const activeSize=()=>{const it=S.inv.find(i=>i.id===S.cfg.diaperItem);return it?normSize(it.size):''};
+const lastWeight=()=>{const g=[...S.growth].filter(x=>x.w).sort((a,b)=>b.date.localeCompare(a.date))[0];return g?+g.w:null};
+function wipeStats(it){const op=(it.opened||[]).filter(t=>t>Date.now()-21*DAY);let perWeek=null;if(op.length>=2){const span=Math.max(DAY,Date.now()-Math.min(...op));perWeek=op.length/(span/(7*DAY))}
+ return{perWeek,days:perWeek?(+it.qty||0)/perWeek*7:null}}
+VIEWS.fraldas=()=>{
+ const d=diaperStats(),cur=activeSize(),kg=lastWeight(),ind=kg?sizeByKg(kg):'',wipes=S.inv.filter(i=>i.cat==='lenco');
+ const days=[...Array(7)].map((_,i)=>addDays(dayStart(Date.now()),i-6)),st=days.map(dayStats);
+ const max=Math.max(1,...SIZES.map(z=>Math.max(sizeQty(z),sizeGoal(z))));
+ const tone=d.st==='bad'?'bad':d.st==='warn'?'warn':'ok';
+ return`<div class="card fr-hero">
+  <div class="card-h"><div><div class="small muted">Em uso</div><h2 style="font-size:22px">${cur?'Tamanho '+cur:'Escolha o tamanho em uso'}</h2></div>${d.items.length?`<span class="pill ${d.st}">${d.label}</span>`:''}</div>
+  <div class="stats">
+   <div class="stat"><div class="v">${d.total}</div><div class="k">fraldas ${cur?cur:''} em casa</div></div>
+   <div class="stat"><div class="v">${d.days!=null&&d.items.length?Math.floor(d.days):'—'}</div><div class="k">dias até acabar</div></div>
+   <div class="stat"><div class="v">${d.today}</div><div class="k">trocas hoje</div></div>
+   <div class="stat"><div class="v">${num(d.avg)}</div><div class="k">por dia ${d.est?'(estimativa)':'(média 7 dias)'}</div></div>
+  </div>
+  <div class="meter" style="--c:var(--${tone});margin-top:12px"><i style="width:${d.days!=null?Math.min(100,d.days/14*100):0}%"></i></div>
+  ${kg?`<p class="small" style="margin:10px 0 0">Pelo último peso (${num(kg,2)} kg), o tamanho indicado é <b>${ind}</b> (${SIZE_KG[ind]}).${cur&&ind!==cur?` <span class="pill warn">talvez seja hora de trocar</span>`:''}</p>`:''}
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn sm primary" data-act="buyDiaper">Comprei fraldas</button><button class="btn sm" data-act="frSize" data-id="${cur||'P'}">Editar tamanho ${cur||''}</button></div></div>
+ <div class="card"><div class="card-h"><h2>Por tamanho</h2><span class="small muted">tem / meta</span></div>
+  <div class="szchart">${SIZES.map(z=>{const q=sizeQty(z),g=sizeGoal(z),on=z===cur;return`<button class="szrow${on?' on':''}" data-act="frSize" data-id="${z}">
+   <span class="sz"><b>${z}</b><span>${SIZE_KG[z]}</span></span>
+   <span class="szbar"><i style="width:${q/max*100}%;--c:${on?'var(--accent)':q>=g?'var(--ok)':q?'var(--diaper)':'var(--line)'}"></i><s style="left:${g/max*100}%"></s></span>
+   <span class="szn"><b>${q}</b>/${g}</span></button>`}).join('')}</div>
+  <p class="small muted" style="margin:10px 0 0">A meta é uma sugestão de quanto ter de cada tamanho ao longo do uso. Toque num tamanho para mudar a quantidade, a meta ou usar esse tamanho.</p></div>
+ <div class="card"><div class="card-h"><h2>Lenços umedecidos</h2><button class="btn sm" data-act="wipeAdd">Adicionar</button></div>
+  ${wipes.length?`<div class="rows">${wipes.map(it=>{const w=wipeStats(it),low=+it.min>0&&(+it.qty||0)<=+it.min;return`<div class="row"><div class="main" data-act="invEdit" data-id="${it.id}" style="cursor:pointer"><div class="ttl">${esc(it.name)} ${low?'<span class="pill bad">comprar</span>':''}</div><div class="small muted">${+it.perPack?it.perPack+' lenços por pacote · ':''}${w.days!=null?'dá para uns '+Math.floor(w.days)+' dias':'abra um pacote para o app estimar a duração'}</div></div>
+   <div class="qty"><button class="iconbtn" data-act="invDec" data-id="${it.id}" aria-label="Diminuir">−</button><span class="n">${it.qty||0}</span><button class="iconbtn" data-act="invInc" data-id="${it.id}" aria-label="Aumentar">+</button></div><button class="btn sm" data-act="wipeOpen" data-id="${it.id}">Abri um pacote</button></div>`}).join('')}</div>`
+  :`<div class="empty">Cadastre os pacotes de lenço para saber quantos tem e quando comprar.</div>`}</div>
+ <div class="card"><div class="card-h"><h2>Trocas por dia</h2><span class="small muted">últimos 7 dias</span></div>${bars(st.map(x=>x.diapers),days.map(t=>WD[new Date(t).getDay()].slice(0,3)),'var(--diaper)')}</div>`;
+};
+A.frSize=z=>{const items=frBySize(z),it=items.find(i=>i.id===S.cfg.diaperItem)||items[0],q=sizeQty(z),on=activeSize()===z;
+ openModal({title:'Fralda tamanho '+z,body:`<p class="small muted" style="margin:0">${SIZE_KG[z]}</p>
+  <div class="frow">${fld('Quantas tem agora',`<input type="number" min="0" name="qty" id="fz-q" value="${it?+it.qty||0:0}" inputmode="numeric">`)}${fld('Meta para esse tamanho',`<input type="number" min="0" name="goal" id="fz-g" value="${sizeGoal(z)}" inputmode="numeric">`)}</div>
+  <div class="frow">${fld('Marca (opcional)',`<input name="brand" id="fz-b" value="${esc(it?.brand||'')}" placeholder="Ex.: Pampers">`)}${fld('Avisar quando chegar a',`<input type="number" min="0" name="min" id="fz-m" value="${it?it.min??30:30}" inputmode="numeric">`)}</div>
+  ${items.length>1?`<p class="small muted">Há ${items.length} cadastros desse tamanho somando ${q}. Esta tela altera o principal.</p>`:''}
+  <label class="switch"><span class="tx">Este é o tamanho em uso<div class="small muted">Cada troca registrada desconta deste tamanho.</div></span><input type="checkbox" name="active"${on?' checked':''}></label>`,
+  onSave:async fd=>{const o={...(it?strip(it):{cat:'fralda',size:z,unit:'un.',note:''}),name:'Fralda '+z+(fd.brand.trim()?' · '+fd.brand.trim():''),brand:fd.brand.trim(),qty:Math.max(0,+fd.qty||0),goal:Math.max(0,+fd.goal||0),min:Math.max(0,+fd.min||0),size:z};
+   const id=it?it.id:newId();await w(store.set('inventory/'+id,o));if(fd.active&&S.cfg.diaperItem!==id)await w(store.set('config/main',{...S.cfg,diaperItem:id}));toast('Tamanho '+z+' salvo')}})};
+A.wipeAdd=()=>openModal({title:'Lenço umedecido',body:`${fld('Nome ou marca','<input name="name" id="wp-n" required placeholder="Ex.: Lenço Huggies">')}
+ <div class="frow">${fld('Pacotes em casa','<input type="number" min="0" name="qty" id="wp-q" value="0" inputmode="numeric">')}${fld('Lenços por pacote','<input type="number" min="0" name="perPack" id="wp-p" placeholder="Ex.: 48" inputmode="numeric">')}${fld('Avisar com','<input type="number" min="0" name="min" id="wp-m" value="2" inputmode="numeric">')}</div>`,
+ onSave:async fd=>{if(!fd.name.trim()){toast('Dê um nome.',true);return false}await w(store.set('inventory/'+newId(),{name:fd.name.trim(),cat:'lenco',qty:Math.max(0,+fd.qty||0),perPack:+fd.perPack||0,min:+fd.min||0,unit:'pacotes',note:'',opened:[]}));toast('Lenço cadastrado')}});
+A.wipeOpen=async id=>{const it=S.inv.find(i=>i.id===id);if(!it)return;if(!(+it.qty>0)){toast('Não há pacotes fechados. Registre uma compra.',true);return}
+ const opened=[...(it.opened||[]),Date.now()].slice(-12);await w(store.set('inventory/'+id,{...strip(it),qty:+it.qty-1,opened}));toast(`Pacote aberto · restam ${+it.qty-1}`)};
+
+/* ---------- enxoval ---------- */
+const ENX_CATS=[['roupas','Roupas','var(--feed)','bag'],['quarto','Quarto e sono','var(--sleep)','moon'],['banho','Banho e higiene','var(--diaper)','drop'],['alimentacao','Alimentação','var(--feed)','bottle'],['passeio','Passeio','var(--accent)','star'],['saude','Saúde','var(--health)','thermo'],['brincar','Brinquedos','var(--growth)','heart'],['outros','Outros','var(--other)','box']];
+const ENX_ST=[['falta','Falta','var(--muted)'],['vendo','Pesquisando','var(--warn)'],['comprado','Comprado','var(--ok)'],['ganhou','Ganhou','var(--sleep)']];
+const ENX_DONE=s=>s==='comprado'||s==='ganhou';
+const ENX_SUGG=[
+ ['roupas','Body manga curta',6,'RN e P'],['roupas','Body manga longa',6,'RN e P'],['roupas','Mijão ou calça',6,'RN e P'],['roupas','Macacão',6,'P e M'],['roupas','Casaquinho',3,'P'],['roupas','Meias',6,''],['roupas','Luvinhas',3,''],['roupas','Touca',2,''],['roupas','Saída de maternidade',1,''],
+ ['quarto','Berço',1,''],['quarto','Colchão de berço',1,''],['quarto','Jogo de lençol de berço',3,''],['quarto','Protetor de colchão impermeável',2,''],['quarto','Manta ou cobertor',2,''],['quarto','Saco de dormir',2,''],['quarto','Cômoda com trocador',1,''],['quarto','Babá eletrônica',1,''],['quarto','Luz noturna',1,''],['quarto','Cortina blackout',1,''],
+ ['banho','Banheira',1,''],['banho','Toalha com capuz',3,''],['banho','Sabonete líquido infantil',1,''],['banho','Shampoo infantil',1,''],['banho','Pomada para assaduras',2,''],['banho','Algodão',2,''],['banho','Tesourinha ou cortador de unha',1,''],['banho','Escova de cabelo macia',1,''],['banho','Termômetro de banho',1,''],['banho','Trocador portátil',1,''],['banho','Lixeira para fraldas',1,''],
+ ['alimentacao','Fraldas de pano (paninhos de boca)',10,''],['alimentacao','Babadores',6,''],['alimentacao','Mamadeiras',3,''],['alimentacao','Escova de mamadeira',1,''],['alimentacao','Esterilizador',1,''],['alimentacao','Almofada de amamentação',1,''],['alimentacao','Bomba tira-leite',1,''],['alimentacao','Saquinhos para leite materno',1,''],['alimentacao','Concha ou protetor de seios',1,''],
+ ['passeio','Carrinho',1,''],['passeio','Bebê conforto',1,''],['passeio','Base do bebê conforto para o carro',1,''],['passeio','Bolsa maternidade',1,''],['passeio','Canguru ou sling',1,''],['passeio','Mosquiteiro para carrinho',1,''],
+ ['saude','Termômetro digital',1,''],['saude','Aspirador nasal',1,''],['saude','Soro fisiológico',2,''],['saude','Seringa dosadora',2,''],['saude','Kit de primeiros socorros',1,''],
+ ['brincar','Móbile',1,''],['brincar','Tapete de atividades',1,''],['brincar','Chocalho',2,''],['brincar','Mordedor',2,''],['brincar','Livro de pano',2,'']];
+let ENXF=lsGet('ddb-enx-f')||'todos';
+function enxStats(list){const r={n:list.length,done:0,vendo:0,falta:0,gasto:0};list.forEach(i=>{if(ENX_DONE(i.status))r.done++;else if(i.status==='vendo')r.vendo++;else r.falta++;if(i.status==='comprado')r.gasto+=+i.price||0});return r}
+function donut(parts,label,sub){const r=42,C=2*Math.PI*r,tot=parts.reduce((s,p)=>s+p[0],0)||1;let off=0;
+ return`<svg class="ring" width="112" height="112" viewBox="0 0 112 112" role="img" aria-label="${esc(label)} ${sub}"><circle cx="56" cy="56" r="${r}" fill="none" stroke="var(--line)" stroke-width="12"/>${parts.filter(p=>p[0]>0).map(([v,c])=>{const len=v/tot*C,s=`<circle cx="56" cy="56" r="${r}" fill="none" stroke="${c}" stroke-width="12" stroke-dasharray="${len.toFixed(2)} ${(C-len).toFixed(2)}" stroke-dashoffset="${(-off).toFixed(2)}" transform="rotate(-90 56 56)"/>`;off+=len;return s}).join('')}<text x="56" y="58" text-anchor="middle" font-size="20">${esc(label)}</text><text x="56" y="74" text-anchor="middle" font-size="10" style="fill:var(--muted);font-family:var(--body);font-weight:700">${sub}</text></svg>`}
+const money=v=>'R$ '+(+v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+VIEWS.enxoval=()=>{
+ const all=S.enx;
+ if(!all.length)return`<div class="card empty-hero"><span class="ic lg" style="--c:var(--feed);margin:0 auto 10px">${ic('bag')}</span><h2>Monte o enxoval</h2><p class="muted small" style="max-width:360px;margin:8px auto 14px">Comece com a lista sugerida, com ${ENX_SUGG.length} itens em 7 categorias. Depois tire o que não precisa e acrescente o que quiser.</p><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button class="btn primary" data-act="enxSugg">Usar a lista sugerida</button><button class="btn" data-act="enxAdd">Começar do zero</button></div></div>`;
+ const t=enxStats(all),pct=Math.round(t.done/t.n*100);
+ const cats=ENX_CATS.map(c=>[c,all.filter(i=>(i.cat||'outros')===c[0])]).filter(x=>x[1].length);
+ const filt=i=>ENXF==='todos'||(ENXF==='prontos'?ENX_DONE(i.status):ENXF==='vendo'?i.status==='vendo':!ENX_DONE(i.status)&&i.status!=='vendo');
+ return`<div class="card"><div class="enx-sum">${donut([[t.done,'var(--ok)'],[t.vendo,'var(--warn)'],[t.falta,'var(--line)']],pct+'%','pronto')}
+   <div class="enx-leg"><div><i style="--c:var(--ok)"></i><b>${t.done}</b> comprados ou ganhos</div><div><i style="--c:var(--warn)"></i><b>${t.vendo}</b> pesquisando</div><div><i style="--c:var(--muted)"></i><b>${t.falta}</b> faltando</div>${t.gasto?`<div class="small muted" style="margin-top:4px">Gasto até agora: <b style="color:var(--ink)">${money(t.gasto)}</b></div>`:''}</div></div>
+  <div class="label" style="margin:16px 0 8px">Por categoria</div>
+  <div class="catbars">${cats.map(([c,l])=>{const s=enxStats(l);return`<button class="catbar" data-act="enxJump" data-id="${c[0]}"><span class="cn">${c[1]}</span><span class="cb"><i style="width:${s.done/s.n*100}%;--c:var(--ok)"></i><i style="width:${s.vendo/s.n*100}%;--c:var(--warn)"></i></span><span class="cc">${s.done}/${s.n}</span></button>`}).join('')}</div></div>
+ <div class="alb-head"><div class="alb-tabs">${[['todos','Todos'],['falta','Faltando'],['vendo','Pesquisando'],['prontos','Prontos']].map(([k,l])=>`<button class="chip" aria-pressed="${ENXF===k}" data-act="enxF" data-id="${k}">${l}</button>`).join('')}</div></div>
+ ${cats.map(([c,l])=>{const vis=l.filter(filt).sort((a,b)=>(ENX_DONE(a.status)-ENX_DONE(b.status))||a.name.localeCompare(b.name));if(!vis.length)return'';const s=enxStats(l);
+  return`<div class="card" id="enx-${c[0]}"><div class="card-h"><div style="display:flex;align-items:center;gap:10px"><span class="ic" style="--c:${c[2]}">${ic(c[3])}</span><h2>${c[1]}</h2></div><span class="small muted">${s.done} de ${s.n}</span></div>
+  <div class="rows">${vis.map(i=>{const stt=ENX_ST.find(x=>x[0]===(i.status||'falta'))||ENX_ST[0];return`<div class="row enx-row"><div class="main" data-act="enxEdit" data-id="${i.id}" style="cursor:pointer"><div class="ttl${ENX_DONE(i.status)?' done':''}">${esc(i.name)}</div><div class="small muted">${+i.qty>1||+i.have?`${+i.have||0} de ${+i.qty||1}`:''}${i.size?' · '+esc(i.size):''}${+i.price?' · '+money(i.price):''}${i.note?' · '+esc(i.note):''}</div></div><button class="stbtn" style="--c:${stt[2]}" data-act="enxSt" data-id="${i.id}" aria-label="Mudar situação: ${stt[1]}">${stt[1]}</button></div>`}).join('')}</div></div>`}).join('')||`<div class="empty">Nenhum item neste filtro.</div>`}
+ <div style="text-align:center"><button class="linkbtn" data-act="enxSuggMissing">Adicionar sugestões que ainda não estão na lista</button></div>`;
+};
+A.enxF=k=>{ENXF=k;lsSet('ddb-enx-f',k);render()};
+A.enxJump=k=>{if(ENXF!=='todos'){ENXF='todos';render()}const el=$('#enx-'+k);if(el)el.scrollIntoView({behavior:'smooth',block:'start'})};
+A.enxSugg=async()=>{const now=Date.now();await w(store.setMany(ENX_SUGG.map(([cat,name,qty,size],i)=>['enxoval/'+newId()+i,{name,cat,qty,have:0,size,status:'falta',price:0,note:'',createdAt:now+i}])));toast('Lista sugerida adicionada')};
+A.enxSuggMissing=async()=>{const have=new Set(S.enx.map(i=>i.name.toLowerCase())),miss=ENX_SUGG.filter(s=>!have.has(s[1].toLowerCase()));if(!miss.length){toast('Todas as sugestões já estão na lista.');return}
+ await w(store.setMany(miss.map(([cat,name,qty,size],i)=>['enxoval/'+newId()+i,{name,cat,qty,have:0,size,status:'falta',price:0,note:'',createdAt:Date.now()+i}])));toast(`${miss.length} sugestões adicionadas`)};
+A.enxSt=async id=>{const i=S.enx.find(x=>x.id===id);if(!i)return;const order=['falta','vendo','comprado','ganhou'],nx=order[(order.indexOf(i.status||'falta')+1)%order.length];
+ const o={...strip(i),status:nx};if(ENX_DONE(nx)&&!(+i.have>0))o.have=+i.qty||1;if(nx==='falta')o.have=0;await w(store.set('enxoval/'+id,o))};
+function enxForm(i){return`${fld('Item',`<input name="name" id="ex-n" value="${esc(i.name||'')}" required placeholder="Ex.: Body manga longa">`)}
+ <div class="frow">${fld('Categoria',`<select name="cat" id="ex-c">${ENX_CATS.map(c=>`<option value="${c[0]}"${(i.cat||'outros')===c[0]?' selected':''}>${c[1]}</option>`).join('')}</select>`)}${fld('Tamanho (opcional)',`<input name="size" id="ex-s" value="${esc(i.size||'')}" placeholder="RN, P, M…">`)}</div>
+ <div class="fld"><span>Situação</span>${seg('status',ENX_ST.map(s=>[s[0],s[1]]),i.status||'falta')}</div>
+ <div class="frow">${fld('Quantidade ideal',`<input type="number" min="1" name="qty" id="ex-q" value="${+i.qty||1}" inputmode="numeric">`)}${fld('Já tem',`<input type="number" min="0" name="have" id="ex-h" value="${+i.have||0}" inputmode="numeric">`)}${fld('Valor pago (R$)',`<input name="price" id="ex-p" value="${+i.price?String(i.price).replace('.',','):''}" inputmode="decimal" placeholder="0,00">`)}</div>
+ ${fld('Observação',`<input name="note" id="ex-o" value="${esc(i.note||'')}" placeholder="Loja, link, quem vai dar de presente…">`)}`}
+function enxFrom(fd){if(!fd.name.trim()){toast('Dê um nome ao item.',true);return null}const qty=Math.max(1,+fd.qty||1);let have=Math.max(0,+fd.have||0);if(ENX_DONE(fd.status)&&!have)have=qty;
+ return{name:fd.name.trim(),cat:fd.cat,size:fd.size.trim(),status:fd.status,qty,have,price:parseFloat(String(fd.price||'').replace(/\./g,'').replace(',','.'))||0,note:fd.note.trim()}}
+A.enxAdd=()=>openModal({title:'Novo item do enxoval',body:enxForm({}),onSave:async fd=>{const o=enxFrom(fd);if(!o)return false;await w(store.set('enxoval/'+newId(),{...o,createdAt:Date.now()}));toast('Item adicionado')}});
+A.enxEdit=id=>{const i=S.enx.find(x=>x.id===id);if(!i)return;openModal({title:'Editar item',body:enxForm(i),onSave:async fd=>{const o=enxFrom(fd);if(!o)return false;await w(store.set('enxoval/'+id,{...strip(i),...o}));toast('Salvo')},onDelete:async()=>{await w(store.del('enxoval/'+id));toast('Item removido')}})};
+
 /* ============ início ============ */
 function subscribeAll(){
  store.doc('config/main',d=>{S.cfg=d;render()});
@@ -1657,6 +1824,7 @@ function subscribeAll(){
  store.col('milestones',l=>{S.ms=l;render()});
  store.col('exams',l=>{S.exams=l;render()});
  store.col('photos',l=>{S.photos=l;render()});
+ store.col('enxoval',l=>{S.enx=l;render()});
  store.col('albums',l=>{S.albums=l;render()});
  store.col('albnotes',l=>{S.albnotes=Object.fromEntries(l.map(x=>[x.id,x]));render()});
  subMonths();
@@ -1665,10 +1833,13 @@ let curYm=ymOf(Date.now());
 setInterval(()=>{const ym=ymOf(Date.now());if(ym!==curYm){curYm=ym;if(FAM)subMonths()}if(!M&&S.cfg&&!['ajustes','tutorial','sons','album'].includes(S.tab))render()},30000);
 async function loadMembers(){const{data}=await sb.from('members').select('user_id,display_name').eq('family_id',FAM);MEMBERS=data||[];render()}
 async function loadFamily(){
- const{data,error}=await sb.from('members').select('family_id,display_name,families(invite_code)').eq('user_id',ME.id).limit(1);
- if(error){S.stale=true;AUTH='ready';return render()}
+ try{OUTBOX=JSON.parse(lsGet(outKey())||'[]')}catch(e){OUTBOX=[]}
+ let data,error;try{({data,error}=await sb.from('members').select('family_id,display_name,families(invite_code)').eq('user_id',ME.id).limit(1))}catch(e){error=e}
+ if(error){let c=null;try{c=JSON.parse(lsGet('ddb-fam-'+ME.id)||'null')}catch(e){}if(!c){S.stale=true;AUTH='ready';return render()}data=[c];S.stale=true}
  if(!data||!data.length){FAM=null;AUTH='ready';return render()}
  FAM=data[0].family_id;WHO=data[0].display_name||'';INVITE=data[0].families?.invite_code||'';AUTH='ready';
+ lsSet('ddb-fam-'+ME.id,JSON.stringify({family_id:FAM,display_name:WHO,families:{invite_code:INVITE}}));
+ loadCache();flush();
  subscribeAll();loadMembers();checkPush();
  sb.channel('fam-'+FAM).on('postgres_changes',{event:'*',schema:'public',table:'docs',filter:'family_id=eq.'+FAM},p=>{const r=p.new;if(!r||!r.path)return;r.deleted?cache.delete(r.path):cache.set(r.path,r.data);touch(r.path)}).subscribe(st=>{if(st==='SUBSCRIBED')refetchAll()});
 }

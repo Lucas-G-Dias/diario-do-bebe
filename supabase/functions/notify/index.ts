@@ -57,14 +57,16 @@ async function checkFamily(fid: string) {
   // fraldas
   const inv = by("inventory"), fr = inv.filter((i) => i.cat === "fralda");
   if (fr.length && L.hour >= 9) {
-    const total = fr.reduce((s, i) => s + (+i.qty || 0), 0);
+    const ns = (x: unknown) => String(x || "").toUpperCase().replace(/\s/g, "");
+    const act = fr.find((i) => i.id === cfg.diaperItem), pool = act ? fr.filter((i) => ns(i.size) === ns(act.size)) : fr;
+    const total = pool.reduce((s, i) => s + (+i.qty || 0), 0), szTxt = act && ns(act.size) ? " " + ns(act.size) : "";
     const evs = events.filter((e) => e.type === "diaper" && e.start <= now);
     const last7 = evs.filter((e) => e.start >= now - 7 * DAY);
     let avg: number;
     if (last7.length >= 3) { const first = Math.min(...evs.map((e) => e.start)); avg = last7.length / Math.max(1, Math.min(7, (now - first) / DAY)); }
     else { const m = cfg.birth ? (now - Date.parse(cfg.birth)) / (30.44 * DAY) : 0; avg = m < 1 ? 10 : m < 6 ? 8 : m < 12 ? 6 : 5; }
     const days = total / avg;
-    if (days <= 3) await notify(`diaper:${L.iso}`, total ? "Fraldas acabando" : "Acabaram as fraldas", total ? `Restam ${total} fraldas, dá para ${days < 1 ? "menos de 1 dia" : "uns " + Math.floor(days) + (Math.floor(days) > 1 ? " dias" : " dia")}. Hora de comprar!` : "O estoque de fraldas está zerado no app.", "estoque", "fralda");
+    if (days <= 3) await notify(`diaper:${L.iso}`, total ? "Fraldas acabando" : "Acabaram as fraldas", total ? `Restam ${total} fraldas${szTxt}, dá para ${days < 1 ? "menos de 1 dia" : "uns " + Math.floor(days) + (Math.floor(days) > 1 ? " dias" : " dia")}. Hora de comprar!` : "O estoque de fraldas está zerado no app.", "estoque", "fralda");
   }
   // lista de compras
   const low = inv.filter((i) => i.cat !== "fralda" && +i.min > 0 && (+i.qty || 0) <= +i.min);
