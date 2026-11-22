@@ -455,6 +455,13 @@ img[data-p]:not([src]){opacity:0}
 .swatches input{position:absolute;opacity:0;inset:0;margin:0}
 .swatches span{display:block;width:34px;height:34px;border-radius:50%;background:var(--c);box-shadow:inset 0 0 0 3px var(--surface)}
 .swatches input:checked+span{outline:3px solid var(--c);outline-offset:2px}
+/* ===== v5 ===== */
+.szhead{display:flex;justify-content:space-between;align-items:center;font-family:var(--display);font-weight:600;font-size:14.5px;padding:12px 2px 4px;border-bottom:1px solid var(--line);color:var(--accent)}
+.szhead span{font-family:var(--body);font-size:12px;color:var(--muted);font-weight:700}
+.frsum{display:flex;flex-direction:column;gap:8px;width:100%;border:0;background:var(--surface2);border-radius:14px;padding:12px;cursor:pointer;text-align:left;color:var(--ink);margin-bottom:6px}
+.frs-chips{display:flex;flex-wrap:wrap;gap:6px}
+.frs{display:inline-flex;gap:5px;align-items:baseline;background:var(--surface);border-radius:9px;padding:4px 8px;font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.frs b{color:var(--ink);font-size:13px}.frs.ok b{color:var(--ok)}.frs.mid b{color:var(--diaper)}
 /* ===== v4: offline, fraldas, enxoval ===== */
 .offline{display:flex;align-items:center;gap:10px;background:color-mix(in srgb,var(--warn) 14%,var(--surface));border-radius:14px;padding:10px 12px;font-size:13.5px}
 .offline b{display:block;font-size:14px}
@@ -625,6 +632,10 @@ const store={
  doc(path,cb){const s={path,cb,doc:true};subs.push(s);if(cache.has(path))deliver(s);fetchSub(s);return()=>{const i=subs.indexOf(s);if(i>=0)subs.splice(i,1)}},
  async set(path,data){pending.set(path,Date.now());cache.set(path,data);touch(path);saveNow();await put('set',path,data)},
  async del(path){pending.set(path,Date.now());cache.delete(path);touch(path);saveNow();await put('del',path,null)},
+ async delMany(paths){paths.forEach(p=>{pending.set(p,Date.now());cache.delete(p)});subs.forEach(deliver);saveNow();
+  if(!navigator.onLine){paths.forEach(p=>queue('del',p,null));return}
+  let error;try{({error}=await sb.from('docs').upsert(paths.map(p=>row(p,null,true))))}catch(e){error=e}
+  if(error){if(isNet(error)){paths.forEach(p=>queue('del',p,null));return}refetchAll();throw error}},
  async setMany(list){list.forEach(([p,d])=>{pending.set(p,Date.now());cache.set(p,d)});subs.forEach(deliver);saveCache();
   if(!navigator.onLine){list.forEach(([p,d])=>queue('set',p,d));return}
   let error;try{({error}=await sb.from('docs').upsert(list.map(([p,d])=>row(p,d))))}catch(e){error=e}
@@ -1165,11 +1176,11 @@ A.dayPrev=()=>setDay(addDays(S.day,-1));A.dayNext=()=>setDay(Math.min(dayStart(D
 function setDay(t){S.day=dayStart(t);const ym=ymOf(S.day),cur=ymOf(Date.now());S.hist=(ym===cur||ym===prevYm(cur))?null:ym;subMonths();render()}
 
 /* estoque */
-function invForm(i){return`${fld('Nome',`<input name="name" id="i-name" value="${esc(i.name||'')}" required placeholder="${i.cat==='fralda'?'Ex.: Pampers Confort Sec':'Ex.: Lenço umedecido'}">`)}
- <div class="frow">${fld('Categoria',`<select name="cat" id="i-cat">${INV_CATS.map(([k,l])=>`<option value="${k}"${(i.cat||'outro')===k?' selected':''}>${l}</option>`).join('')}</select>`)}${fld('Tamanho (opcional)',`<input name="size" id="i-size" value="${esc(i.size||'')}" placeholder="RN, P, M, G…">`)}</div>
+function invForm(i){return`${fld(i.cat==='fralda'?'Marca ou nome (opcional)':'Nome',`<input name="name" id="i-name" value="${esc(i.name||'')}" placeholder="${i.cat==='fralda'?'Ex.: Pampers':'Ex.: Pomada para assaduras'}">`)}
+ <div class="frow">${fld('Categoria',`<select name="cat" id="i-cat">${INV_CATS.map(([k,l])=>`<option value="${k}"${(i.cat||'outro')===k?' selected':''}>${l}</option>`).join('')}</select>`)}${fld('Tamanho',sizeSelect('size','i-size',SIZES,normSize(i.size)||i.size||'','Sem tamanho'))}</div>
  <div class="frow">${fld('Quantidade agora',`<input type="number" min="0" name="qty" id="i-qty" value="${i.qty??''}" required>`)}${fld('Avisar quando chegar a',`<input type="number" min="0" name="min" id="i-min" value="${i.min??''}" placeholder="Ex.: 20">`)}${fld('Unidade',`<input name="unit" id="i-unit" value="${esc(i.unit||'')}" placeholder="un., pacotes, ml…">`)}</div>
  ${fld('Observação',`<input name="note" id="i-note" value="${esc(i.note||'')}">`)}`}
-function invFromForm(fd){if(!fd.name.trim()){toast('Dê um nome ao item.',true);return null}return{name:fd.name.trim(),cat:fd.cat,size:fd.size.trim(),qty:Math.max(0,+fd.qty||0),min:Math.max(0,+fd.min||0),unit:fd.unit.trim(),note:fd.note.trim()}}
+function invFromForm(fd){if(!fd.name.trim()&&fd.cat==='fralda')fd.name='Fralda '+(fd.size||'');if(!fd.name.trim()){toast('Dê um nome ao item.',true);return null}return{name:fd.name.trim(),cat:fd.cat,size:fd.size.trim(),qty:Math.max(0,+fd.qty||0),min:Math.max(0,+fd.min||0),unit:fd.unit.trim(),note:fd.note.trim()}}
 A.invAdd=cat=>{cat=cat||(S.inv.some(i=>i.cat==='fralda')?'higiene':'fralda');openModal({title:'Novo item no estoque',body:invForm({cat,min:cat==='fralda'?30:''}),onSave:async fd=>{const o=invFromForm(fd);if(!o)return false;const id=newId();await w(store.set('inventory/'+id,o));
  if(o.cat==='fralda'&&!S.cfg.diaperItem)await w(store.set('config/main',{...S.cfg,diaperItem:id}));toast('Item adicionado')}})};
 A.invEdit=id=>{const i=S.inv.find(x=>x.id===id);if(!i)return;openModal({title:'Editar item',body:invForm(i)+(i.cat==='fralda'?`<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="active" id="i-active"${S.cfg.diaperItem===id?' checked':''}> Esta é a fralda em uso agora</label>`:''),
@@ -1347,13 +1358,19 @@ const pageOf=t=>{t=ALIAS[t]||t;return PAGES[t]?t:'inicio'};
 const TABS=Object.entries(PAGES);
 const ROOT=['inicio','diario','sons','menu'];
 let LAST_TAB=null,ONB_SHOWN=false,ONB=0;
+let RENDER_PENDING=false;
+document.addEventListener('focusout',()=>{if(RENDER_PENDING){RENDER_PENDING=false;setTimeout(render,0)}});
 function render(){
  const app=$('#app');
- if(AUTH==='loading'){app.innerHTML=`<div class="wrap">${BRAND}<div class="top"><div class="who-baby"><div class="age">Abrindo…</div></div></div></div>`;return}
- if(!ME){app.innerHTML=loginView();return}
- if(!FAM){app.innerHTML=familyView();return}
- if(S.cfg===undefined){app.innerHTML=`<div class="wrap">${BRAND}<div class="top"><div class="who-baby"><div class="age">${S.stale?'Os dados ainda não responderam. Verifique a conexão.':'Carregando…'}</div></div></div></div>`;return}
- if(S.cfg===null){app.innerHTML=setupView();return}
+ const keep=k=>{if(app.dataset.screen===k)return true;app.dataset.screen=k;return false};
+ const ae=document.activeElement;
+ if(ae&&app.contains(ae)&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)&&!/^(radio|checkbox|range)$/.test(ae.type)&&ae.id!=='dayPick'){RENDER_PENDING=true;return}
+ if(AUTH==='loading'){app.dataset.screen='';app.innerHTML=`<div class="wrap">${BRAND}<div class="top"><div class="who-baby"><div class="age">Abrindo…</div></div></div></div>`;return}
+ if(!ME){if(!keep('login-'+LOGIN_MODE))app.innerHTML=loginView();return}
+ if(!FAM){if(!keep('family'))app.innerHTML=familyView();return}
+ if(S.cfg===undefined){app.dataset.screen='';app.innerHTML=`<div class="wrap">${BRAND}<div class="top"><div class="who-baby"><div class="age">${S.stale?'Os dados ainda não responderam. Verifique a conexão.':'Carregando…'}</div></div></div></div>`;return}
+ if(S.cfg===null){if(!keep('setup'))app.innerHTML=setupView();return}
+ app.dataset.screen='main';
  S.tab=pageOf(S.tab);
  const a=age(),tab=S.tab,enter=LAST_TAB!==tab;LAST_TAB=tab;
  const scrollY=window.scrollY,dst=diaperStats();
@@ -1490,7 +1507,15 @@ A.fab=()=>openModal({title:'Registrar',noFooter:true,body:`<div class="grid-act"
  ['growthAdd','growth','var(--growth)','Peso e medida'],['exAdd','flask','var(--health)','Exame'],['agAdd','cal','var(--accent)','Compromisso'],
  ['msAdd','star','var(--feed)','Primeira vez'],['albQuick','image','var(--feed)','Foto'],['buyDiaper','bag','var(--diaper)','Comprei fraldas']
  ].map(([a,i,c,l])=>`<button type="button" class="choice" data-act="${a}"><span class="ic lg" style="--c:${c}">${ic(i)}</span>${l}</button>`).join('')}</div>`});
-A.buyDiaper=()=>{const id=S.cfg.diaperItem||S.inv.find(i=>i.cat==='fralda')?.id;if(!id)return A.invAdd('fralda');A.invBuy(id)};
+A.buyDiaper=()=>{const kg=lastWeight(),cur=activeSize()||(kg?sizeByKg(kg):'P');
+ openModal({title:'Comprei fraldas',saveLabel:'Somar ao estoque',body:`<div class="fld"><span>Tamanho</span>${seg('size',SIZES.map(z=>[z,z]),cur)}</div>
+  ${fld('Quantas fraldas vieram',`<input type="number" min="1" name="n" id="bd-n" inputmode="numeric" placeholder="Toque num número abaixo ou digite">`)}
+  <div class="chips">${[20,30,40,50,60,80,100,150].map(n=>`<button type="button" class="chip" data-act="setBd" data-id="${n}">${n}</button>`).join('')}</div>
+  ${fld('Marca (opcional)','<input name="brand" id="bd-b" placeholder="Ex.: Pampers">')}`,
+  onSave:async fd=>{const n=+fd.n;if(!(n>0)){toast('Informe quantas fraldas vieram.',true);return false}const z=fd.size,items=frBySize(z),it=items.find(i=>i.id===S.cfg.diaperItem)||items[0],id=it?it.id:newId(),b=(fd.brand||'').trim();
+   const o=it?{...strip(it),qty:(+it.qty||0)+n,...(b?{brand:b}:{})}:{name:'Fralda '+z+(b?' · '+b:''),brand:b,cat:'fralda',size:z,qty:n,min:30,goal:SIZE_GOAL[z],unit:'un.',note:''};
+   await w(store.set('inventory/'+id,o));if(!S.cfg.diaperItem||!S.inv.some(i=>i.id===S.cfg.diaperItem))await w(store.set('config/main',{...S.cfg,diaperItem:id}));toast(`+${n} fraldas ${z} · agora ${o.qty}`)}})};
+A.setBd=n=>{const el=$('#bd-n');if(el)el.value=n;document.querySelectorAll('[data-act=setBd]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.id===String(n)))};
 A.medAgain=id=>{const e=allEv().find(x=>x.id===id);if(!e)return;addEvent({type:'med',name:e.name,dose:e.dose,start:Date.now(),remindEvery:e.remindEvery,remindUntil:e.remindUntil}).then(()=>toast('Dose registrada'+(e.remindEvery?' · próxima às '+fmtT(Date.now()+e.remindEvery*HR):'')))};
 A.pushPrompt=()=>{if(PUSH==='ios-install'){openModal({title:'Primeiro, instale o app',noFooter:true,body:`<ol class="steps"><li>Abra este endereço no <b>Safari</b>.</li><li>Toque em <b>Compartilhar</b> (o quadrado com a seta).</li><li>Escolha <b>Adicionar à Tela de Início</b>.</li><li>Abra pelo ícone novo e toque em <b>Ativar avisos</b>.</li></ol>`});return}A.pushOn()};
 A.pushX=()=>{lsSet('ddb-push-x',String(Date.now()));render()};
@@ -1714,7 +1739,7 @@ const SIZES=['RN','P','M','G','XG','XXG'];
 const SIZE_KG={RN:'até 4,5 kg',P:'3 a 6 kg',M:'5,5 a 9,5 kg',G:'9 a 12,5 kg',XG:'11 a 15 kg',XXG:'acima de 14 kg'};
 const SIZE_GOAL={RN:60,P:300,M:600,G:600,XG:300,XXG:150};
 const sizeByKg=kg=>kg<4.5?'RN':kg<6?'P':kg<9.5?'M':kg<12.5?'G':kg<15?'XG':'XXG';
-const normSize=s=>{s=String(s||'').toUpperCase().replace(/\s/g,'');return SIZES.includes(s)?s:''};
+const normSize=s=>{s=String(s||'').toUpperCase().replace(/\s/g,'');if(s==='XGG')s='XXG';if(s==='RM')s='RN';return SIZES.includes(s)?s:''};
 const frBySize=sz=>S.inv.filter(i=>i.cat==='fralda'&&normSize(i.size)===sz);
 const sizeQty=sz=>frBySize(sz).reduce((s,i)=>s+(+i.qty||0),0);
 const sizeGoal=sz=>{const it=frBySize(sz).find(i=>+i.goal>0);return it?+it.goal:SIZE_GOAL[sz]};
@@ -1765,17 +1790,26 @@ A.wipeOpen=async id=>{const it=S.inv.find(i=>i.id===id);if(!it)return;if(!(+it.q
  const opened=[...(it.opened||[]),Date.now()].slice(-12);await w(store.set('inventory/'+id,{...strip(it),qty:+it.qty-1,opened}));toast(`Pacote aberto · restam ${+it.qty-1}`)};
 
 /* ---------- enxoval ---------- */
-const ENX_CATS=[['roupas','Roupas','var(--feed)','bag'],['quarto','Quarto e sono','var(--sleep)','moon'],['banho','Banho e higiene','var(--diaper)','drop'],['alimentacao','Alimentação','var(--feed)','bottle'],['passeio','Passeio','var(--accent)','star'],['saude','Saúde','var(--health)','thermo'],['brincar','Brinquedos','var(--growth)','heart'],['outros','Outros','var(--other)','box']];
+const ENX_CATS=[['roupas','Roupinhas','var(--feed)','bag'],['troca','Fraldas e troca','var(--diaper)','diaper'],['higiene','Higiene e saúde','var(--health)','thermo'],['banho','Banho','var(--diaper)','drop'],['quarto','Sono e quarto','var(--sleep)','moon'],['alimentacao','Alimentação e amamentação','var(--feed)','bottle'],['passeio','Passeio e transporte','var(--accent)','star'],['acessorios','Acessórios e brinquedos','var(--growth)','heart'],['outros','Outros','var(--other)','box']];
+const ENX_ALIAS={saude:'higiene',brincar:'acessorios'};
+const enxCat=i=>ENX_ALIAS[i.cat]||i.cat||'outros';
+const ENX_SIZES=['RN','P','M','G','GG','1','2','3','Único'];
 const ENX_ST=[['falta','Falta','var(--muted)'],['vendo','Pesquisando','var(--warn)'],['comprado','Comprado','var(--ok)'],['ganhou','Ganhou','var(--sleep)']];
 const ENX_DONE=s=>s==='comprado'||s==='ganhou';
+// [categoria, item, quantidade, tamanho, observação]
 const ENX_SUGG=[
- ['roupas','Body manga curta',6,'RN e P'],['roupas','Body manga longa',6,'RN e P'],['roupas','Mijão ou calça',6,'RN e P'],['roupas','Macacão',6,'P e M'],['roupas','Casaquinho',3,'P'],['roupas','Meias',6,''],['roupas','Luvinhas',3,''],['roupas','Touca',2,''],['roupas','Saída de maternidade',1,''],
- ['quarto','Berço',1,''],['quarto','Colchão de berço',1,''],['quarto','Jogo de lençol de berço',3,''],['quarto','Protetor de colchão impermeável',2,''],['quarto','Manta ou cobertor',2,''],['quarto','Saco de dormir',2,''],['quarto','Cômoda com trocador',1,''],['quarto','Babá eletrônica',1,''],['quarto','Luz noturna',1,''],['quarto','Cortina blackout',1,''],
- ['banho','Banheira',1,''],['banho','Toalha com capuz',3,''],['banho','Sabonete líquido infantil',1,''],['banho','Shampoo infantil',1,''],['banho','Pomada para assaduras',2,''],['banho','Algodão',2,''],['banho','Tesourinha ou cortador de unha',1,''],['banho','Escova de cabelo macia',1,''],['banho','Termômetro de banho',1,''],['banho','Trocador portátil',1,''],['banho','Lixeira para fraldas',1,''],
- ['alimentacao','Fraldas de pano (paninhos de boca)',10,''],['alimentacao','Babadores',6,''],['alimentacao','Mamadeiras',3,''],['alimentacao','Escova de mamadeira',1,''],['alimentacao','Esterilizador',1,''],['alimentacao','Almofada de amamentação',1,''],['alimentacao','Bomba tira-leite',1,''],['alimentacao','Saquinhos para leite materno',1,''],['alimentacao','Concha ou protetor de seios',1,''],
- ['passeio','Carrinho',1,''],['passeio','Bebê conforto',1,''],['passeio','Base do bebê conforto para o carro',1,''],['passeio','Bolsa maternidade',1,''],['passeio','Canguru ou sling',1,''],['passeio','Mosquiteiro para carrinho',1,''],
- ['saude','Termômetro digital',1,''],['saude','Aspirador nasal',1,''],['saude','Soro fisiológico',2,''],['saude','Seringa dosadora',2,''],['saude','Kit de primeiros socorros',1,''],
- ['brincar','Móbile',1,''],['brincar','Tapete de atividades',1,''],['brincar','Chocalho',2,''],['brincar','Mordedor',2,''],['brincar','Livro de pano',2,'']];
+ ['roupas','Body manga curta',4,'RN','RN serve só de 2 a 4 semanas'],['roupas','Body manga longa',4,'RN',''],['roupas','Mijão ou calça',4,'RN',''],['roupas','Macacão',4,'RN',''],['roupas','Meias',4,'RN','pares'],['roupas','Luvinhas',3,'RN','pares'],['roupas','Touca',2,'RN',''],['roupas','Saída de maternidade',1,'RN',''],['roupas','Casaquinho',1,'RN',''],
+ ['roupas','Body manga curta',6,'P',''],['roupas','Body manga longa',6,'P',''],['roupas','Mijão ou calça',6,'P',''],['roupas','Macacão',6,'P',''],['roupas','Meias',6,'P','pares'],['roupas','Casaquinho',2,'P',''],
+ ['roupas','Body manga curta',6,'M','comprar perto de precisar'],['roupas','Body manga longa',6,'M',''],['roupas','Calça',6,'M',''],['roupas','Macacão',5,'M',''],['roupas','Meias',6,'M','pares'],['roupas','Casaquinho',2,'M',''],
+ ['troca','Trocador impermeável (casa)',1,'',''],['troca','Trocador impermeável (saídas)',1,'',''],['troca','Pomada para assaduras',2,'',''],['troca','Algodão',2,'','pacotes'],['troca','Fraldas de pano (paninhos de boca)',10,'',''],['troca','Cesto para roupa suja',1,'',''],['troca','Lixeira antiodor',1,'',''],
+ ['higiene','Termômetro digital',1,'',''],['higiene','Soro fisiológico 0,9%',2,'',''],['higiene','Potes organizadores ou bandeja',1,'','conjunto'],['higiene','Cotonetes',1,'',''],['higiene','Álcool 70% para o umbigo',1,'',''],['higiene','Cortador ou tesourinha infantil',1,'',''],['higiene','Aspirador nasal',1,'',''],['higiene','Escova de cabelo macia',1,'',''],['higiene','Seringa dosadora para remédio',2,'',''],['higiene','Kit de primeiros socorros',1,'',''],['higiene','Talco, perfume e óleos essenciais',1,'','pediatras costumam pedir para evitar nos primeiros meses'],
+ ['banho','Banheira',1,'',''],['banho','Toalhas com capuz',3,'',''],['banho','Sabonete suave para recém-nascido',1,'',''],['banho','Paninhos macios',5,'',''],['banho','Shampoo e condicionador separados',1,'',''],['banho','Termômetro de banho',1,'','opcional'],
+ ['quarto','Cama montessoriana',1,'',''],['quarto','Colchão impermeável para a cama',1,'',''],['quarto','Mini berço',1,'',''],['quarto','Roupa de cama (cama)',2,'','jogos'],['quarto','Roupa de cama do mini berço',3,'','jogos'],['quarto','Babá eletrônica',1,'',''],['quarto','Abajur',1,'','luz baixa para as mamadas da noite'],['quarto','Organizadores de gavetas',1,'','conjunto'],['quarto','Cabides',20,'',''],['quarto','Ninho redutor',1,'','para usar acordado; para dormir, superfície firme e sem objetos'],['quarto','Espelho de parede',1,'','montessoriano, na altura do bebê'],['quarto','Tapete grande',1,'',''],['quarto','Saco de dormir',2,'',''],['quarto','Cortina blackout',1,'',''],
+ ['alimentacao','Absorventes para seios',1,'','caixa'],['alimentacao','Pomada para mamilos (lanolina)',1,'',''],['alimentacao','Almofada de amamentação',1,'',''],['alimentacao','Bomba extratora de leite',1,'',''],['alimentacao','Potes para armazenar leite',1,'','kit'],['alimentacao','Mamadeiras',3,'',''],['alimentacao','Escova de mamadeira',1,'',''],['alimentacao','Babadores',6,'',''],
+ ['passeio','Bebê-conforto',1,'',''],['passeio','Base do bebê-conforto para o carro',1,'','opcional'],['passeio','Bolsa maternidade ou mochila',1,'',''],['passeio','Carrinho de bebê',1,'',''],['passeio','Sling ou canguru',1,'',''],['passeio','Mosquiteiro para a cama',1,'',''],['passeio','Mosquiteiro para o carrinho',1,'',''],
+ ['acessorios','Chupetas',2,'',''],['acessorios','Naninha',1,'',''],['acessorios','Bichos de pelúcia',2,'',''],['acessorios','Mordedores',2,'',''],['acessorios','Brinquedos sensoriais',3,'',''],['acessorios','Móbile',1,'',''],['acessorios','Tapete de atividades',1,'',''],['acessorios','Livro de pano',2,'','']];
+const enxKey=(n,z)=>(n||'').trim().toLowerCase()+'|'+(z||'').trim().toUpperCase();
+const suggDoc=([cat,name,qty,size,note],i)=>['enxoval/'+newId()+i,{name,cat,qty,have:0,size,status:'falta',price:0,note,createdAt:Date.now()+i}];
 let ENXF=lsGet('ddb-enx-f')||'todos';
 function enxStats(list){const r={n:list.length,done:0,vendo:0,falta:0,gasto:0};list.forEach(i=>{if(ENX_DONE(i.status))r.done++;else if(i.status==='vendo')r.vendo++;else r.falta++;if(i.status==='comprado')r.gasto+=+i.price||0});return r}
 function donut(parts,label,sub){const r=42,C=2*Math.PI*r,tot=parts.reduce((s,p)=>s+p[0],0)||1;let off=0;
@@ -1783,35 +1817,47 @@ function donut(parts,label,sub){const r=42,C=2*Math.PI*r,tot=parts.reduce((s,p)=
 const money=v=>'R$ '+(+v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 VIEWS.enxoval=()=>{
  const all=S.enx;
- if(!all.length)return`<div class="card empty-hero"><span class="ic lg" style="--c:var(--feed);margin:0 auto 10px">${ic('bag')}</span><h2>Monte o enxoval</h2><p class="muted small" style="max-width:360px;margin:8px auto 14px">Comece com a lista sugerida, com ${ENX_SUGG.length} itens em 7 categorias. Depois tire o que não precisa e acrescente o que quiser.</p><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button class="btn primary" data-act="enxSugg">Usar a lista sugerida</button><button class="btn" data-act="enxAdd">Começar do zero</button></div></div>`;
+ if(!all.length)return`<div class="card empty-hero"><span class="ic lg" style="--c:var(--feed);margin:0 auto 10px">${ic('bag')}</span><h2>Monte o enxoval</h2><p class="muted small" style="max-width:360px;margin:8px auto 14px">Comece com a lista sugerida: ${ENX_SUGG.length} itens em 8 categorias, montada a partir da lista de vocês, com roupinhas por tamanho. Depois tire o que não precisa e acrescente o que quiser.</p><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button class="btn primary" data-act="enxSugg">Usar a lista sugerida</button><button class="btn" data-act="enxAdd">Começar do zero</button></div></div>`;
  const t=enxStats(all),pct=Math.round(t.done/t.n*100);
- const cats=ENX_CATS.map(c=>[c,all.filter(i=>(i.cat||'outros')===c[0])]).filter(x=>x[1].length);
+ const oldList=all.some(i=>i.cat==='saude'||i.cat==='brincar')&&all.every(i=>(i.status||'falta')==='falta'&&!(+i.have)&&!(+i.price)&&!i.note);
+ const upd=oldList?`<div class="alert"><span class="ic" style="--c:var(--accent)">${ic('bag')}</span><div class="tx"><b>Lista nova disponível</b><span>${ENX_SUGG.length} itens, montada com a lista de vocês, roupinhas por tamanho e quarto montessoriano. Como nada foi marcado ainda, dá para trocar sem perder nada.</span></div><button class="btn sm primary" data-act="enxSwap">Trocar</button></div>`:'';
+ const cats=ENX_CATS.map(c=>[c,all.filter(i=>enxCat(i)===c[0])]).filter(x=>x[1].length||x[0][0]==='troca');
  const filt=i=>ENXF==='todos'||(ENXF==='prontos'?ENX_DONE(i.status):ENXF==='vendo'?i.status==='vendo':!ENX_DONE(i.status)&&i.status!=='vendo');
- return`<div class="card"><div class="enx-sum">${donut([[t.done,'var(--ok)'],[t.vendo,'var(--warn)'],[t.falta,'var(--line)']],pct+'%','pronto')}
+ return`${upd}<div class="card"><div class="enx-sum">${donut([[t.done,'var(--ok)'],[t.vendo,'var(--warn)'],[t.falta,'var(--line)']],pct+'%','pronto')}
    <div class="enx-leg"><div><i style="--c:var(--ok)"></i><b>${t.done}</b> comprados ou ganhos</div><div><i style="--c:var(--warn)"></i><b>${t.vendo}</b> pesquisando</div><div><i style="--c:var(--muted)"></i><b>${t.falta}</b> faltando</div>${t.gasto?`<div class="small muted" style="margin-top:4px">Gasto até agora: <b style="color:var(--ink)">${money(t.gasto)}</b></div>`:''}</div></div>
   <div class="label" style="margin:16px 0 8px">Por categoria</div>
-  <div class="catbars">${cats.map(([c,l])=>{const s=enxStats(l);return`<button class="catbar" data-act="enxJump" data-id="${c[0]}"><span class="cn">${c[1]}</span><span class="cb"><i style="width:${s.done/s.n*100}%;--c:var(--ok)"></i><i style="width:${s.vendo/s.n*100}%;--c:var(--warn)"></i></span><span class="cc">${s.done}/${s.n}</span></button>`}).join('')}</div></div>
+  <div class="catbars">${cats.map(([c,l])=>{const s=enxStats(l);if(!s.n)return'';return`<button class="catbar" data-act="enxJump" data-id="${c[0]}"><span class="cn">${c[1]}</span><span class="cb"><i style="width:${s.done/s.n*100}%;--c:var(--ok)"></i><i style="width:${s.vendo/s.n*100}%;--c:var(--warn)"></i></span><span class="cc">${s.done}/${s.n}</span></button>`}).join('')}</div></div>
  <div class="alb-head"><div class="alb-tabs">${[['todos','Todos'],['falta','Faltando'],['vendo','Pesquisando'],['prontos','Prontos']].map(([k,l])=>`<button class="chip" aria-pressed="${ENXF===k}" data-act="enxF" data-id="${k}">${l}</button>`).join('')}</div></div>
- ${cats.map(([c,l])=>{const vis=l.filter(filt).sort((a,b)=>(ENX_DONE(a.status)-ENX_DONE(b.status))||a.name.localeCompare(b.name));if(!vis.length)return'';const s=enxStats(l);
-  return`<div class="card" id="enx-${c[0]}"><div class="card-h"><div style="display:flex;align-items:center;gap:10px"><span class="ic" style="--c:${c[2]}">${ic(c[3])}</span><h2>${c[1]}</h2></div><span class="small muted">${s.done} de ${s.n}</span></div>
-  <div class="rows">${vis.map(i=>{const stt=ENX_ST.find(x=>x[0]===(i.status||'falta'))||ENX_ST[0];return`<div class="row enx-row"><div class="main" data-act="enxEdit" data-id="${i.id}" style="cursor:pointer"><div class="ttl${ENX_DONE(i.status)?' done':''}">${esc(i.name)}</div><div class="small muted">${+i.qty>1||+i.have?`${+i.have||0} de ${+i.qty||1}`:''}${i.size?' · '+esc(i.size):''}${+i.price?' · '+money(i.price):''}${i.note?' · '+esc(i.note):''}</div></div><button class="stbtn" style="--c:${stt[2]}" data-act="enxSt" data-id="${i.id}" aria-label="Mudar situação: ${stt[1]}">${stt[1]}</button></div>`}).join('')}</div></div>`}).join('')||`<div class="empty">Nenhum item neste filtro.</div>`}
+ ${cats.map(([c,l])=>{const vis=l.filter(filt).sort((a,b)=>(ENX_DONE(a.status)-ENX_DONE(b.status))||a.name.localeCompare(b.name));if(!vis.length&&c[0]!=='troca')return'';const s=enxStats(l);
+  return`<div class="card" id="enx-${c[0]}"><div class="card-h"><div style="display:flex;align-items:center;gap:10px"><span class="ic" style="--c:${c[2]}">${ic(c[3])}</span><h2>${c[1]}</h2></div><span class="small muted">${s.n?s.done+' de '+s.n:''}</span></div>
+  ${c[0]==='troca'?frSummary():''}
+  <div class="rows">${enxRows(c[0],vis)}</div></div>`}).join('')||`<div class="empty">Nenhum item neste filtro.</div>`}
  <div style="text-align:center"><button class="linkbtn" data-act="enxSuggMissing">Adicionar sugestões que ainda não estão na lista</button></div>`;
 };
+function enxRow(i){const stt=ENX_ST.find(x=>x[0]===(i.status||'falta'))||ENX_ST[0];return`<div class="row enx-row"><div class="main" data-act="enxEdit" data-id="${i.id}" style="cursor:pointer"><div class="ttl${ENX_DONE(i.status)?' done':''}">${esc(i.name)}</div><div class="small muted">${+i.qty>1||+i.have?`${+i.have||0} de ${+i.qty||1}`:''}${i.size&&enxCat(i)!=='roupas'?' · '+esc(i.size):''}${+i.price?' · '+money(i.price):''}${i.note?' · '+esc(i.note):''}</div></div><button class="stbtn" style="--c:${stt[2]}" data-act="enxSt" data-id="${i.id}" aria-label="Mudar situação: ${stt[1]}">${stt[1]}</button></div>`}
+function enxRows(cat,vis){if(cat!=='roupas')return vis.map(enxRow).join('');const order=[...ENX_SIZES,''],g={};vis.forEach(i=>{const z=ENX_SIZES.includes(i.size)?i.size:(i.size||'');(g[z]=g[z]||[]).push(i)});
+ return Object.keys(g).sort((a,b)=>(order.indexOf(a)<0?99:order.indexOf(a))-(order.indexOf(b)<0?99:order.indexOf(b))).map(z=>`<div class="szhead">${z?(/^\d/.test(z)?z+(z==='1'?' ano':' anos'):'Tamanho '+esc(z)):'Sem tamanho'}<span>${g[z].filter(i=>ENX_DONE(i.status)).length} de ${g[z].length}</span></div>${g[z].map(enxRow).join('')}`).join('')}
+function frSummary(){const any=S.inv.some(i=>i.cat==='fralda'),wp=S.inv.filter(i=>i.cat==='lenco'),pk=wp.reduce((s,i)=>s+(+i.qty||0),0);
+ return`<button class="frsum" data-act="tab" data-id="fraldas"><span class="frs-chips">${SIZES.map(z=>{const q=sizeQty(z),g=sizeGoal(z);return`<span class="frs${q>=g?' ok':q?' mid':''}"><b>${z}</b>${q}/${g}</span>`}).join('')}<span class="frs${pk?' mid':''}"><b>Lenços</b>${pk} ${pk===1?'pacote':'pacotes'}</span></span><span class="small" style="color:var(--accent);font-weight:700">${any?'Ver fraldas e lenços':'Cadastrar fraldas e lenços'} ›</span></button>`}
+A.enxSwap=async(id,btn)=>{if(!btn.classList.contains('armed')){btn.classList.add('armed');btn.textContent='Confirmar';setTimeout(()=>{btn.classList.remove('armed');btn.textContent='Trocar'},4000);return}
+ await w(store.delMany(S.enx.map(i=>'enxoval/'+i.id)));await w(store.setMany(ENX_SUGG.map(suggDoc)));toast('Lista nova pronta')};
 A.enxF=k=>{ENXF=k;lsSet('ddb-enx-f',k);render()};
 A.enxJump=k=>{if(ENXF!=='todos'){ENXF='todos';render()}const el=$('#enx-'+k);if(el)el.scrollIntoView({behavior:'smooth',block:'start'})};
-A.enxSugg=async()=>{const now=Date.now();await w(store.setMany(ENX_SUGG.map(([cat,name,qty,size],i)=>['enxoval/'+newId()+i,{name,cat,qty,have:0,size,status:'falta',price:0,note:'',createdAt:now+i}])));toast('Lista sugerida adicionada')};
-A.enxSuggMissing=async()=>{const have=new Set(S.enx.map(i=>i.name.toLowerCase())),miss=ENX_SUGG.filter(s=>!have.has(s[1].toLowerCase()));if(!miss.length){toast('Todas as sugestões já estão na lista.');return}
- await w(store.setMany(miss.map(([cat,name,qty,size],i)=>['enxoval/'+newId()+i,{name,cat,qty,have:0,size,status:'falta',price:0,note:'',createdAt:Date.now()+i}])));toast(`${miss.length} sugestões adicionadas`)};
+A.enxSugg=async()=>{await w(store.setMany(ENX_SUGG.map(suggDoc)));toast('Lista sugerida adicionada')};
+A.enxSuggMissing=async()=>{const have=new Set(S.enx.map(i=>enxKey(i.name,i.size))),miss=ENX_SUGG.filter(x=>!have.has(enxKey(x[1],x[3])));if(!miss.length){toast('Todas as sugestões já estão na lista.');return}
+ await w(store.setMany(miss.map(suggDoc)));toast(`${miss.length} sugestões adicionadas`)};
 A.enxSt=async id=>{const i=S.enx.find(x=>x.id===id);if(!i)return;const order=['falta','vendo','comprado','ganhou'],nx=order[(order.indexOf(i.status||'falta')+1)%order.length];
  const o={...strip(i),status:nx};if(ENX_DONE(nx)&&!(+i.have>0))o.have=+i.qty||1;if(nx==='falta')o.have=0;await w(store.set('enxoval/'+id,o))};
-function enxForm(i){return`${fld('Item',`<input name="name" id="ex-n" value="${esc(i.name||'')}" required placeholder="Ex.: Body manga longa">`)}
- <div class="frow">${fld('Categoria',`<select name="cat" id="ex-c">${ENX_CATS.map(c=>`<option value="${c[0]}"${(i.cat||'outros')===c[0]?' selected':''}>${c[1]}</option>`).join('')}</select>`)}${fld('Tamanho (opcional)',`<input name="size" id="ex-s" value="${esc(i.size||'')}" placeholder="RN, P, M…">`)}</div>
+function sizeSelect(name,id,opts,val,blank){const o=[...opts];if(val&&!o.includes(val))o.push(val);return`<select name="${name}" id="${id}"><option value="">${blank}</option>${o.map(z=>`<option${z===val?' selected':''}>${esc(z)}</option>`).join('')}</select>`}
+function enxForm(i){return`${fld('Item',`<input name="name" id="ex-n" value="${esc(i.name||'')}" required list="enx-names" autocomplete="off" placeholder="Comece a digitar: body, banheira…">`)}<datalist id="enx-names">${[...new Set(ENX_SUGG.map(x=>x[1]))].map(n=>`<option value="${esc(n)}">`).join('')}</datalist>
+ <div class="frow">${fld('Categoria',`<select name="cat" id="ex-c">${ENX_CATS.map(c=>`<option value="${c[0]}"${enxCat(i)===c[0]?' selected':''}>${c[1]}</option>`).join('')}</select>`)}${fld('Tamanho',sizeSelect('size','ex-s',ENX_SIZES,i.size||'','Sem tamanho'))}</div>
  <div class="fld"><span>Situação</span>${seg('status',ENX_ST.map(s=>[s[0],s[1]]),i.status||'falta')}</div>
  <div class="frow">${fld('Quantidade ideal',`<input type="number" min="1" name="qty" id="ex-q" value="${+i.qty||1}" inputmode="numeric">`)}${fld('Já tem',`<input type="number" min="0" name="have" id="ex-h" value="${+i.have||0}" inputmode="numeric">`)}${fld('Valor pago (R$)',`<input name="price" id="ex-p" value="${+i.price?String(i.price).replace('.',','):''}" inputmode="decimal" placeholder="0,00">`)}</div>
  ${fld('Observação',`<input name="note" id="ex-o" value="${esc(i.note||'')}" placeholder="Loja, link, quem vai dar de presente…">`)}`}
 function enxFrom(fd){if(!fd.name.trim()){toast('Dê um nome ao item.',true);return null}const qty=Math.max(1,+fd.qty||1);let have=Math.max(0,+fd.have||0);if(ENX_DONE(fd.status)&&!have)have=qty;
  return{name:fd.name.trim(),cat:fd.cat,size:fd.size.trim(),status:fd.status,qty,have,price:parseFloat(String(fd.price||'').replace(/\./g,'').replace(',','.'))||0,note:fd.note.trim()}}
-A.enxAdd=()=>openModal({title:'Novo item do enxoval',body:enxForm({}),onSave:async fd=>{const o=enxFrom(fd);if(!o)return false;await w(store.set('enxoval/'+newId(),{...o,createdAt:Date.now()}));toast('Item adicionado')}});
+function enxMount(f){const n=f.querySelector('#ex-n');n.addEventListener('change',()=>{const m=ENX_SUGG.find(x=>x[1].toLowerCase()===n.value.trim().toLowerCase());if(!m)return;f.querySelector('#ex-c').value=m[0];const s=f.querySelector('#ex-s');if(m[3]&&![...s.options].some(o=>o.value===m[3]))s.add(new Option(m[3],m[3]));s.value=m[3]||'';f.querySelector('#ex-q').value=m[2]})}
+A.enxAdd=()=>openModal({title:'Novo item do enxoval',body:enxForm({}),mount:enxMount,onSave:async fd=>{const o=enxFrom(fd);if(!o)return false;await w(store.set('enxoval/'+newId(),{...o,createdAt:Date.now()}));toast('Item adicionado')}});
 A.enxEdit=id=>{const i=S.enx.find(x=>x.id===id);if(!i)return;openModal({title:'Editar item',body:enxForm(i),onSave:async fd=>{const o=enxFrom(fd);if(!o)return false;await w(store.set('enxoval/'+id,{...strip(i),...o}));toast('Salvo')},onDelete:async()=>{await w(store.del('enxoval/'+id));toast('Item removido')}})};
 
 /* ============ início ============ */
