@@ -49,6 +49,9 @@ Toda a interface e as mensagens são em português do Brasil.
 | `js/25-guia-duvidas.js` | Guia dos pais: dúvidas comuns com "procure atendimento se" (SBP/MS) |
 | `js/26-guia.js` | Guia: passo a passo desenhado, onde comprar, pesquisa de preço no enxoval |
 | `js/27-medalhas.js` | medalhas em SVG (bronze → lenda), história personalizada, compartilhar |
+| `js/28-ilustras-alimentos.js` | ilustrações próprias dos 48 alimentos (`foodArt(nome)`) |
+| `js/29-dicas-alimentos.js` | como oferecer cada alimento por idade (`FTIP`) e formatos seguros (`CUTS`) |
+| `js/30-ilustras.js` | ilustrações de reações, grupos do Guia, marcos e lojas (`ill(nome)`) |
 | `supabase/emails-pt.json` | e-mails em português (aplicar depois de configurar o SMTP) |
 | `css/identidade.css` | cores 60/30/10 (`--impact` papaya só para ação e comemoração), tour, ajuda, conquistas |
 | `js/14-boot.js` | assinaturas de dados, carregar família, início do app (sempre o último) |
@@ -69,6 +72,7 @@ Toda a interface e as mensagens são em português do Brasil.
   O `title` é posto sozinho por `17-acessibilidade.js`.
 - Ação assíncrona: devolva a Promise em `A.nome`; o botão fica ocupado sozinho (`busy()` em `07-dom.js`).
 - Leitura do banco: sempre por `store.col/doc` (vira 1 consulta em lote). `npm test` falha se voltar a N+1.
+- Ilustração nova: SVG 64×64 em `ILL` ou `FART`, formas arredondadas, sem contorno, sombra suave; não use emoji.
 - Tela nova com passo a passo: acrescente em `TOURS` (19-tour.js) e um tópico em `HELP` (18-ajuda.js).
 - Decisões da auditoria (acessibilidade, carregamento, N+1, avisos): `docs/AUDITORIA.md`.
 - Segredos (chave de serviço, VAPID privada, segredo do cron) ficam só no

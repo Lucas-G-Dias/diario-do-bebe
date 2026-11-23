@@ -131,3 +131,15 @@ a.food,a.chip{text-decoration:none}
 .alb-tabs{display:flex;flex-wrap:nowrap;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}.alb-tabs::-webkit-scrollbar{display:none}.alb-tabs .chip{white-space:nowrap;flex:none}
 .food-hero{flex-wrap:wrap}.food-hero .grow{flex:1 1 150px}.food-hero>.btn{width:100%}
 .food-hero>.btn{justify-content:center;text-align:center;display:flex}
+/* v14: ilustrações próprias e dicas dos alimentos */
+.fe{width:46px;height:46px;flex:none}.fcard .fe{filter:grayscale(.9);opacity:.5}.fcard.on .fe{filter:none;opacity:1}
+.fnx .fe{width:52px;height:52px}.gart{width:24px;height:24px}.gdots span{font-size:0}
+.fr{display:flex;align-items:center;gap:1px}.fr i{font-style:normal;font-size:11px}.frf{width:20px;height:20px}
+.fbig span{font-size:0!important}.fbart{width:84px;height:84px}
+.freact span{font-size:11px}.freact svg{width:34px;height:34px}
+.ftips{display:flex;flex-direction:column;gap:8px;margin:2px 0 10px}.ftip{padding:10px 12px;border-radius:12px;background:var(--surface2)}.ftip b,.fages small{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.ftip p,.fages p{margin:4px 0 0;font-size:14px;line-height:1.45}.fages{display:grid;grid-template-columns:1fr 1fr;gap:8px}.fages>div{padding:10px 12px;border-radius:12px;border:1px solid var(--line)}
+.fages .cur{border:2px solid var(--feed);background:color-mix(in srgb,var(--feed) 10%,var(--surface))}.fages .cur small{color:var(--feed)}
+.cuts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.cut{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;border-radius:14px;background:var(--surface2)}.cut small{font-size:12px;font-weight:700;text-align:center}
+.tico{width:20px;height:20px;margin-right:4px;vertical-align:-5px}.gtile .ill{width:40px;height:40px}.faq summary .ill{flex:none}.topq .ill{vertical-align:-4px;margin-right:4px}
+.sos .ill{flex:none}.chk .ill{flex:none}.gemo{width:58px;height:58px}.devemo{flex:none;margin-top:-3px}
