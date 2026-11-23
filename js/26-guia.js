@@ -24,13 +24,40 @@ const SHOPS=[
  ['Para conferir antes','',[['Reclame Aqui','https://www.reclameaqui.com.br'],['Inmetro','https://www.gov.br/inmetro']]]];
 const SAFE_BUY=['Berço, carrinho, cadeirinha do carro, cadeira de alimentação, chupeta, mamadeira e brinquedos precisam ter o <b>selo do Inmetro</b>.','Cadeirinha do carro usada só se você souber que nunca passou por batida.','Desconfie de preço muito abaixo dos outros. Veja a reputação no Reclame Aqui.','Compra pela internet: você pode desistir em até 7 dias depois de receber (Código de Defesa do Consumidor).','Guarde a nota fiscal e o manual.'];
 const shopQ=n=>{const q=encodeURIComponent(n),h=encodeURIComponent(n.toLowerCase().trim().replace(/\s+/g,'-'));return[['Amazon',`https://www.amazon.com.br/s?k=${q}`],['Magalu',`https://www.magazineluiza.com.br/busca/${q}/`],['Mercado Livre',`https://lista.mercadolivre.com.br/${h}`]].map(([l,u])=>`<a class="chip" href="${u}" target="_blank" rel="noopener" aria-label="Pesquisar ${esc(n)} em ${l} (abre em nova aba)">${l} ↗</a>`).join('')};
-let GUIA='duvidas';
-VIEWS.guia=()=>{const tabs=[['duvidas','Dúvidas'],['passos','Passo a passo'],['compras','Onde comprar']];let g='';
+let GUIA='duvidas',GFAQ='';
+const GEMO={'Primeiros dias':'👶','Amamentação':'🤱','Sono':'😴','Choro e cólica':'😢','Fraldas e cocô':'🧷','Higiene e pele':'🛁','Saúde e febre':'🌡️'};
+const TOP=['O que fazer na cólica?','O que é febre no bebê?','Como sei que a pega está certa?','Qual a forma segura de dormir?','Qual a cor normal do cocô?'];
+const stepsDone=()=>{try{return JSON.parse(lsGet('ddb-guia-ok')||'{}')}catch(e){return{}}};
+const SHOP_C={Amazon:'#FF9900','Magazine Luiza':'#0086FF','Mercado Livre':'#FFE600','Casas Bahia':'#1D4ED8',Drogasil:'#E2001A','Droga Raia':'#0A7D3E','Pague Menos':'#0055A5',Panvel:'#003DA5','Reclame Aqui':'#82BE2E',Inmetro:'#1351B4'};
+VIEWS.guia=()=>{const tabs=[['duvidas','💬 Dúvidas'],['passos','👣 Passo a passo'],['compras','🛍️ Lojas']];let g='';
  const head=`<div class="alb-tabs" role="tablist">${tabs.map(([k,l])=>`<button class="chip" role="tab" aria-selected="${GUIA===k}" aria-pressed="${GUIA===k}" data-act="guiaTab" data-id="${k}">${l}</button>`).join('')}</div>`;
- if(GUIA==='passos')return head+STEPS.map(([k,t,st])=>`<details class="howto step"><summary>${scene(k)}<b>${t}</b></summary><ol>${st.map(s=>`<li>${s}</li>`).join('')}</ol></details>`).join('')+'<p class="hint">Orientações gerais. Em caso de dúvida, siga o que o pediatra de vocês indicar.</p>';
- if(GUIA==='compras')return head+`<div class="card"><div class="card-h"><h2>Comprar com segurança</h2></div><ul class="marks">${SAFE_BUY.map(s=>`<li>${s}</li>`).join('')}</ul></div>`+SHOPS.map(([t,d,L])=>`<div class="card"><div class="card-h"><h2>${t}</h2></div>${d?`<p class="hint" style="margin-top:0">${d}</p>`:''}<div class="foods">${L.map(([n,u])=>`<a class="food" href="${u}" target="_blank" rel="noopener">${esc(n)} ↗</a>`).join('')}</div></div>`).join('')+'<p class="hint">Lista de lojas conhecidas, sem patrocínio. No Enxoval, cada item tem atalhos para pesquisar o preço.</p>';
- return head+`<label class="hsearch">${ic('search')}<input id="faqQ" type="search" placeholder="Buscar: cólica, febre, cocô…" aria-label="Buscar nas dúvidas" autocomplete="off"></label><div id="faqList">${FAQ.map(([grp,q,a,al,go])=>`${grp!==g?`<h2 class="hgrp">${g=grp}</h2>`:''}<details class="howto faq" data-k="${esc((q+' '+a+' '+al).toLowerCase())}"><summary>${q}</summary><p>${a}</p>${al?`<div class="faq-al"><b>Procure atendimento se</b> ${al}</div>`:''}${go?`<button class="linkbtn" data-act="tab" data-id="${go[0]}">${go[1]} ›</button>`:''}</details>`).join('')}<p class="hint" id="faqNone" hidden>Nada encontrado. Tente outra palavra.</p></div>
- <p class="hint">Baseado em orientações da Sociedade Brasileira de Pediatria e do Ministério da Saúde. Não substitui a consulta. Em emergência, ligue 192 (SAMU).</p>`};
+ if(GUIA==='passos'){const ok=stepsDone(),n=STEPS.filter(x=>ok[x[0]]).length;
+  return head+`<div class="card ghero"><div class="grow"><b>Passo a passo ilustrado</b><span>${n} de ${STEPS.length} vistos. Toque para seguir um passo de cada vez.</span><i class="xp"><b style="width:${n/STEPS.length*100}%"></b></i></div><span class="gemo">👣</span></div>
+  <div class="tgrid">${STEPS.map(([k,t,st])=>`<button class="tcard${ok[k]?' ok':''}" data-act="stepOpen" data-id="${k}">${scene(k)}<b>${t}</b><small>${st.length} passos${ok[k]?' · ✓ visto':''}</small></button>`).join('')}</div>
+  <p class="hint">Orientações gerais. Em caso de dúvida, siga o que o pediatra de vocês indicar.</p>`}
+ if(GUIA==='compras')return head+`<div class="card ghero"><div class="grow"><b>Comprar com segurança</b><span>O que conferir antes de pagar</span></div><span class="gemo">🛡️</span></div>
+  <div class="card"><div class="checks">${SAFE_BUY.map((s,i)=>`<div class="chk"><span>${['🏷️','🚗','🔎','↩️','🧾'][i]}</span><p>${s}</p></div>`).join('')}</div></div>`+SHOPS.map(([t,d,L])=>`<div class="card"><div class="card-h"><h2>${t}</h2></div>${d?`<p class="hint" style="margin-top:0">${d}</p>`:''}<div class="sgrid">${L.map(([n,u])=>`<a class="scard" href="${u}" target="_blank" rel="noopener" aria-label="${esc(n)} (abre em nova aba)"><span class="slogo" style="--s:${SHOP_C[n]||'var(--accent)'}">${esc(n.split(' ').map(w=>w[0]).join('').slice(0,2))}</span><b>${esc(n)}</b><small>abrir ↗</small></a>`).join('')}</div></div>`).join('')+'<p class="hint">Lojas conhecidas, sem patrocínio. No Enxoval, cada item tem atalhos para pesquisar o preço.</p>';
+ const grps=[...new Set(FAQ.map(x=>x[0]))],list=FAQ.filter(x=>!GFAQ||x[0]===GFAQ);
+ return head+`<a class="sos" href="tel:192"><span>🚑</span><div><b>Emergência? Ligue 192 (SAMU)</b><small>Bebê roxo, sem respirar direito, mole ou com convulsão</small></div></a>
+ <label class="hsearch">${ic('search')}<input id="faqQ" type="search" placeholder="Buscar: cólica, febre, cocô…" aria-label="Buscar nas dúvidas" autocomplete="off"></label>
+ <div class="topq"><span class="small muted">Mais procuradas</span>${TOP.map(q=>`<button class="chip" data-act="faqGo" data-id="${FAQ.findIndex(x=>x[1]===q)}">${GEMO[FAQ.find(x=>x[1]===q)[0]]} ${q.replace(/\?$/,'')}</button>`).join('')}</div>
+ <div class="ggrid">${grps.map(x=>`<button class="gtile${GFAQ===x?' on':''}" data-act="faqGrp" data-id="${esc(x)}" aria-pressed="${GFAQ===x}"><span>${GEMO[x]||'💡'}</span><b>${x}</b><small>${FAQ.filter(f=>f[0]===x).length} dúvidas</small></button>`).join('')}</div>
+ <div id="faqList">${list.map(([grp,q,a,al,go])=>`${grp!==g?`<h2 class="hgrp">${GEMO[g=grp]||''} ${grp}</h2>`:''}<details class="howto faq" id="faq${FAQ.findIndex(x=>x[1]===q)}" data-k="${esc((q+' '+a+' '+al).toLowerCase())}"><summary><span class="qe">${GEMO[grp]||'💡'}</span>${q}</summary><p>${a}</p>${al?`<div class="faq-al"><b>⚠️ Procure atendimento se</b> ${al}</div>`:''}${go?`<button class="linkbtn" data-act="tab" data-id="${go[0]}">${go[1]} ›</button>`:''}</details>`).join('')}<p class="hint" id="faqNone" hidden>Nada encontrado. Tente outra palavra.</p></div>
+ <p class="hint">Baseado em orientações da Sociedade Brasileira de Pediatria e do Ministério da Saúde. Não substitui a consulta.</p>`};
+A.faqGrp=k=>{GFAQ=GFAQ===k?'':k;render()};
+A.faqGo=i=>{GFAQ='';render();setTimeout(()=>{const d=$('#faq'+i);if(d){document.querySelectorAll('#faqList .faq[open]').forEach(x=>x.open=false);d.open=true;d.scrollIntoView({block:'center'})}},60)};
+/* passo a passo: um passo por vez, com desenho grande */
+let STEP=null;
+A.stepOpen=k=>{STEP={k,i:0};drawStep()};
+function drawStep(){const[k,t,st]=STEPS.find(x=>x[0]===STEP.k),i=STEP.i,last=i===st.length-1;
+ const body=`<div class="stepper">${scene(k)}<div class="sdots" aria-hidden="true">${st.map((_,j)=>`<i class="${j===i?'on':j<i?'done':''}"></i>`).join('')}</div><div class="snum">Passo ${i+1} de ${st.length}</div><p class="stxt" aria-live="polite">${st[i]}</p>
+  <div class="t-acts"><button type="button" class="btn ghost" data-act="stepPrev"${i?'':' disabled'}>‹ Anterior</button><span class="sp"></span><button type="button" class="btn impact" data-act="stepNext">${last?'Concluir ✓':'Próximo ›'}</button></div></div>`;
+ if(M&&$('#mf .stepper')){$('#mf').innerHTML=body;return}openModal({title:t,noFooter:true,body});
+ const el=$('#mf');let x0=null;el.addEventListener('touchstart',e=>{x0=e.touches[0].clientX},{passive:true});
+ el.addEventListener('touchend',e=>{if(x0==null)return;const dx=e.changedTouches[0].clientX-x0;x0=null;if(dx<-50)A.stepNext();else if(dx>50)A.stepPrev()})}
+A.stepNext=()=>{const st=STEPS.find(x=>x[0]===STEP.k)[2];if(STEP.i<st.length-1){STEP.i++;drawStep();return}
+ const ok=stepsDone();ok[STEP.k]=Date.now();lsSet('ddb-guia-ok',JSON.stringify(ok));closeModal();toast('Passo a passo concluído ✓');render()};
+A.stepPrev=()=>{if(STEP.i){STEP.i--;drawStep()}};
 A.guiaTab=k=>{GUIA=k;render()};
 document.addEventListener('input',e=>{if(e.target.id!=='faqQ')return;const q=e.target.value.trim().toLowerCase();let n=0;
  document.querySelectorAll('#faqList .faq').forEach(d=>{const ok=!q||d.dataset.k.includes(q);d.hidden=!ok;if(ok)n++;if(q&&ok)d.open=true});

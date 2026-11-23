@@ -9,13 +9,14 @@ const DEV=[
  ['d15a',15,'Faz gestos quando você pede','Social'],['d15b',15,'Coloca bloquinhos dentro de um pote','Motor fino'],['d15c',15,'Fala uma palavra','Linguagem'],['d15d',15,'Anda sem apoio','Motor'],
  ['d18a',18,'Mostra dois objetos quando você pede','Social'],['d18b',18,'Rabisca sozinho','Motor fino'],['d18c',18,'Fala três palavras','Linguagem'],['d18d',18,'Anda para trás','Motor'],
  ['d24a',24,'Tira alguma peça de roupa','Social'],['d24b',24,'Empilha 3 bloquinhos','Motor fino'],['d24c',24,'Aponta duas figuras quando você pede','Linguagem'],['d24d',24,'Chuta a bola','Motor']];
+const DEV_EMO={Social:'🤗',Linguagem:'🗣️',Motor:'🚼','Motor fino':'✋'};
 const DEV_AGES=[...new Set(DEV.map(x=>x[1]))];
 /* marcos da idade atual (a faixa que já chegou) */
 function devBand(){const a=age();if(!a)return null;const m=a.m;return DEV_AGES.filter(x=>x<=m).pop()||null}
 function devNow(){const b=devBand();return b?DEV.filter(x=>x[1]===b):[]}
 function devCard(){const a=age();if(!a)return'';const b=devBand(),m=a.m,next=DEV_AGES.find(x=>x>m),dv=S.dev||{};
  const late=DEV.filter(x=>x[1]<b&&!dv[x[0]]),cur=devNow(),nxt=next?DEV.filter(x=>x[1]===next):[];
- const item=x=>`<button class="devi${dv[x[0]]?' on':''}" data-act="devTog" data-id="${x[0]}" aria-pressed="${!!dv[x[0]]}"><span class="ck" aria-hidden="true">${dv[x[0]]?ic('check'):''}</span><span><b>${x[2]}</b><small>${x[3]}${dv[x[0]]?' · visto em '+fmtD(dv[x[0]].at):''}</small></span></button>`;
+ const item=x=>`<button class="devi${dv[x[0]]?' on':''}" data-act="devTog" data-id="${x[0]}" aria-pressed="${!!dv[x[0]]}"><span class="ck" aria-hidden="true">${dv[x[0]]?ic('check'):''}</span><span class="devemo" aria-hidden="true">${DEV_EMO[x[3]]||'⭐'}</span><span><b>${x[2]}</b><small>${x[3]}${dv[x[0]]?' · visto em '+fmtD(dv[x[0]].at):''}</small></span></button>`;
  return`<div class="card"><div class="card-h"><h2>Marcos do desenvolvimento</h2><span class="small muted">${b?`${cur.filter(x=>dv[x[0]]).length} de ${cur.length} · ${b} meses`:''}</span></div>
  ${b?cur.map(item).join(''):`<p class="hint">Os primeiros marcos da Caderneta são aos 2 meses${next?`, daqui a ${Math.max(1,Math.round((Date.parse(S.cfg.birth+'T12:00')+next*30.44*DAY-Date.now())/DAY))} dias`:''}.</p>`}
  ${late.length?`<details class="devmore"><summary>${late.length} ${late.length>1?'marcos':'marco'} de idades anteriores sem marcar</summary>${late.map(item).join('')}</details>`:''}

@@ -66,7 +66,7 @@ function gameStats(){
  const es=enxStats(S.enx),fr=S.inv.filter(i=>i.cat==='fralda');
  const g={n:Math.max(+H.total||0,evs.length),days,today,streak,best:Math.max(best,S.game?.best||0),diaper:cntT('diaper'),feed:cntT('feed'),sleep:cntT('sleep'),vax,wk,
   enx:es,enxPct:es.n?Math.floor(es.done/es.n*100):0,gifts:S.enx.filter(i=>i.status==='ganhou').length,sizes:new Set(fr.map(i=>i.size)).size,
-  metaHit:SIZES.some(z=>sizeGoal(z)>0&&sizeQty(z)>=sizeGoal(z)),foods:typeof foodsOffered==='function'?foodsOffered().size:0,groups:typeof foodGroupsDone==='function'?foodGroupsDone():0,groupsAll:typeof FOOD_GROUPS!=='undefined'?FOOD_GROUPS.length:6,
+  metaHit:SIZES.some(z=>sizeGoal(z)>0&&sizeQty(z)>=sizeGoal(z)),foods:typeof foodsOffered==='function'?foodsOffered().size:0,groups:typeof foodGroupsDone==='function'?foodGroupsDone():0,groupsAll:5,
   devNow:typeof devNow==='function'?devNow().length:0,devDone:typeof devNow==='function'?devNow().filter(x=>S.dev&&S.dev[x[0]]).length:0,
   night:evs.some(e=>new Date(e.start).getHours()<5),people:new Set(evs.map(e=>e.by).filter(Boolean)).size};
  g.xp=(S.game?.xp0||0)+g.n*2+S.photos.length*3+S.ms.length*5+S.growth.length*3+vax*3+have*10;
