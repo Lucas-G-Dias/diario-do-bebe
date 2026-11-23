@@ -1,7 +1,7 @@
 // Diário do Bebê: funciona offline e recebe as notificações
-const CACHE = 'diario-v8';
+const CACHE = 'diario-v9';
 const SHELL = ['./', './index.html', './vendor/supabase.js', './manifest.webmanifest', './icons/icon-192.png', './icons/favicon.svg',
-  './css/app.css', './css/base.css', './css/recursos.css', './js/01-base.js', './js/02-dados.js', './js/03-eventos.js', './js/04-telas-a.js', './js/05-telas-b.js', './js/06-modal-acoes.js', './js/07-dom.js', './js/08-app.js', './js/09-sons-tema.js', './js/10-album.js', './js/11-fraldas.js', './js/12-enxoval.js', './js/13-estoque.js', './js/14-boot.js', './js/15-resumo.js'];
+  './css/app.css', './css/base.css', './css/recursos.css', './js/01-base.js', './js/02-dados.js', './js/03-eventos.js', './js/04-telas-a.js', './js/05-telas-b.js', './js/06-modal-acoes.js', './js/07-dom.js', './js/08-app.js', './js/09-sons-tema.js', './js/10-album.js', './js/11-fraldas.js', './js/12-enxoval.js', './js/13-estoque.js', './js/14-boot.js', './js/15-resumo.js', './js/16-estados.js', './js/17-acessibilidade.js'];
 
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL))); self.skipWaiting(); });
 self.addEventListener('activate', (e) => {

@@ -80,3 +80,19 @@
 .nx span{font-size:12px;color:var(--muted)}
 .nx .soon{color:var(--c);font-weight:700}
 @media (max-width:380px){.stkd-body{grid-template-columns:minmax(0,1fr)}.szbars{height:96px}}
+/* v9: carregamento, erro, botão ocupado */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.sk{display:block;border-radius:8px;background:linear-gradient(90deg,var(--line) 25%,var(--surface2,var(--line)) 50%,var(--line) 75%);background-size:200% 100%;animation:skel 1.2s linear infinite;margin:6px 0}
+@keyframes skel{to{background-position:-200% 0}}
+.sk-tile{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:12px;min-height:104px}
+.sk-row{display:flex;gap:12px;align-items:center;padding:8px 0}.sk-col{flex:1}
+.err-card{text-align:center;padding:24px 16px}.err-card .btn{margin-top:10px}
+.banner .linkbtn{font-weight:700;margin-left:4px}
+.spin{display:inline-block;width:14px;height:14px;margin-right:6px;vertical-align:-2px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+[aria-busy=true].busy{cursor:progress;opacity:.8}
+.iconbtn.busy,.icon-btn.busy,.now-t.busy{animation:busyp 1s ease-in-out infinite}@keyframes busyp{50%{opacity:.5}}
+[role=button][data-act]:focus-visible,tr[data-act]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){.sk,.spin,.busy{animation:none!important}.spin{border-right-color:currentColor;opacity:.5}}
+.linkbtn{min-height:24px;padding-block:3px;margin-block:-3px}
+#upbar{white-space:nowrap;max-width:calc(100vw - 24px);padding:6px 6px 6px 16px}#upbar .x{background:transparent;color:inherit;border:0;width:32px;height:32px;font-size:20px;cursor:pointer}

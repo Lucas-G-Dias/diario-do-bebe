@@ -40,7 +40,7 @@ VIEWS.registros=()=>{
  return`
  <div class="sec-h sec-top">
   <div style="display:flex;gap:6px;align-items:center"><button class="iconbtn" data-act="dayPrev" aria-label="Dia anterior">‹</button>
-  <input type="date" id="dayPick" value="${isoDate(t0)}" max="${isoDate(Date.now())}" style="border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:6px 8px">
+  <input type="date" id="dayPick" aria-label="Escolher o dia do diário" title="Escolher o dia" value="${isoDate(t0)}" max="${isoDate(Date.now())}" style="border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:6px 8px">
   <button class="iconbtn" data-act="dayNext" aria-label="Próximo dia"${isToday?' disabled':''}>›</button>${isToday?'':'<button class="btn sm" data-act="dayToday">Hoje</button>'}</div></div>
  <div class="stats">
   <div class="stat"><div class="v">${fmtDur(ds.sleep)}</div><div class="k">de sono</div></div>
@@ -83,8 +83,8 @@ VIEWS.estoque=()=>{
 };
 function invRow(i){const low=(+i.min||0)>0&&(+i.qty||0)<=(+i.min||0);const active=S.cfg.diaperItem===i.id;
  return`<div class="row"><div class="main"><div class="ttl">${esc(i.name)}${i.size?` <span class="pill neutral">${esc(i.size)}</span>`:''}${active?' <span class="pill ok">em uso</span>':''}${low?' <span class="pill bad">comprar</span>':''}</div><div class="small muted">${i.min?`mínimo ${i.min} ${esc(i.unit||'un.')}`:esc(i.unit||'unidades')}${i.note?' · '+esc(i.note):''}</div></div>
- <div class="qty"><button class="iconbtn" data-act="invDec" data-id="${i.id}" aria-label="Diminuir">−</button><span class="n">${i.qty||0}</span><button class="iconbtn" data-act="invInc" data-id="${i.id}" aria-label="Aumentar">+</button></div>
- <button class="btn sm" data-act="invBuy" data-id="${i.id}">Compra</button><button class="btn sm ghost" data-act="invEdit" data-id="${i.id}">Editar</button></div>`}
+ <div class="qty"><button class="iconbtn" data-act="invDec" data-id="${i.id}" aria-label="Tirar 1 de ${esc(i.name)}">−</button><span class="n">${i.qty||0}</span><button class="iconbtn" data-act="invInc" data-id="${i.id}" aria-label="Somar 1 a ${esc(i.name)}">+</button></div>
+ <button class="btn sm" data-act="invBuy" data-id="${i.id}" aria-label="Compra de ${esc(i.name)}: somar ao estoque" title="Registrar compra e somar ao estoque">Compra</button><button class="btn sm ghost" data-act="invEdit" data-id="${i.id}" aria-label="Editar ${esc(i.name)}">Editar</button></div>`}
 
 /* ---------- Crescimento ---------- */
 VIEWS.crescimento=()=>{

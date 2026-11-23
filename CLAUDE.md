@@ -37,6 +37,8 @@ Toda a interface e as mensagens são em português do Brasil.
 | `js/12-enxoval.js` | enxoval: lista sugerida, checklist, gráficos |
 | `js/13-estoque.js` | lenços (gasto estimado por troca), painel de fraldas/lenços da Início |
 | `js/15-resumo.js` | cartão "Próximos" da Início (consulta, vacina, exame, peso) |
+| `js/16-estados.js` | esqueleto de carregamento, erro com "Tentar de novo" (`pageBody`, `PAGE_DATA`) |
+| `js/17-acessibilidade.js` | botões de verdade para teclado/leitor, dica nos ícones, foco preso no diálogo |
 | `js/14-boot.js` | assinaturas de dados, carregar família, início do app (sempre o último) |
 | `sw.js` | modo offline e notificações push |
 | `supabase/schema.sql` | tabelas e regras de acesso (RLS) |
@@ -51,11 +53,17 @@ Toda a interface e as mensagens são em português do Brasil.
 - Dados: sempre `store.set('colecao/id', {...})`; nunca chamar o Supabase direto
   para documentos (quebra o modo offline).
 - Texto vindo do usuário sempre passa por `esc()`.
+- Botão só com ícone: `aria-label` que diga **o que** e **de quê** ("Tirar 1 de Fralda P"), nunca só "Editar"/"Abrir".
+  O `title` é posto sozinho por `17-acessibilidade.js`.
+- Ação assíncrona: devolva a Promise em `A.nome`; o botão fica ocupado sozinho (`busy()` em `07-dom.js`).
+- Leitura do banco: sempre por `store.col/doc` (vira 1 consulta em lote). `npm test` falha se voltar a N+1.
+- Decisões da auditoria (acessibilidade, carregamento, N+1, avisos): `docs/AUDITORIA.md`.
 - Segredos (chave de serviço, VAPID privada, segredo do cron) ficam só no
   Supabase. Nunca no repositório. A chave `anon` no `02-dados.js` é pública.
 
 ## Comandos
 
 - `npm run lint`: travas de qualidade (350 linhas, sem console direto)
+- `npm test`: trava de N+1 (abrir o app = 1 consulta), roda sem internet
 - Testar localmente: `python3 -m http.server 8765` e abrir no navegador
 - Banco/funções: API de gerenciamento do Supabase com token de acesso

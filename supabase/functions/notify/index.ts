@@ -4,7 +4,8 @@ import { createClient } from "npm:@supabase/supabase-js@2.45.4";
 
 const APP_URL = "https://lucas-g-dias.github.io/diario-do-bebe/";
 const DAY = 864e5, HR = 36e5, TZ = -3; // horário de Brasília
-const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { auth: { persistSession: false } });
+const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { auth: { persistSession: false }, global: { fetch: (...a: Parameters<typeof fetch>) => { Q++; return fetch(...a); } } });
+let Q = 0; // métrica: chamadas ao banco nesta execução (aparece na resposta e no log)
 webpush.setVapidDetails(Deno.env.get("VAPID_SUBJECT")!, Deno.env.get("VAPID_PUBLIC_KEY")!, Deno.env.get("VAPID_PRIVATE_KEY")!);
 
 const VAX: [string, string, number, string][] = [
@@ -31,17 +32,24 @@ const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers
 const DEF_OFF = ["mamada", "resumo"];
 type Sub = { endpoint: string; sub: unknown; prefs: Record<string, unknown> | null };
 const wants = (s: Sub, cat?: string) => !cat || ((s.prefs || {})[cat] ?? !DEF_OFF.includes(cat)) === true;
-async function send(fid: string, payload: Record<string, unknown>, onlyUser?: string, cat?: string, filter?: (s: Sub) => boolean) {
+type Out = { key: string; payload: Record<string, unknown>; cat?: string; filter?: (s: Sub) => boolean };
+// Envia vários avisos para os aparelhos já carregados, em paralelo e com tempo-limite.
+// Devolve quantos chegaram por aviso, quais falharam por motivo passageiro e quais aparelhos não existem mais.
+async function deliver(subs: Sub[], outs: Out[]) {
+  const ok: Record<string, number> = {}, soft: Record<string, number> = {}, dead = new Set<string>();
+  await Promise.allSettled(outs.flatMap((o) => subs.filter((s) => wants(s, o.cat) && (!o.filter || o.filter(s))).map(async (s) => {
+    try { await webpush.sendNotification(s.sub as webpush.PushSubscription, JSON.stringify(o.payload), { TTL: 43200, timeout: 8000 }); ok[o.key] = (ok[o.key] || 0) + 1; }
+    catch (e) { const c = (e as { statusCode?: number }).statusCode; if (c === 404 || c === 410) dead.add(s.endpoint); else { soft[o.key] = (soft[o.key] || 0) + 1; console.error("push", o.key, c ?? String(e).slice(0, 80)); } }
+  })));
+  if (dead.size) await db.from("push_subs").delete().in("endpoint", [...dead]); // 1 consulta para todos os aparelhos inválidos
+  return { ok, soft };
+}
+async function send(fid: string, payload: Record<string, unknown>, onlyUser?: string) {
   let q = db.from("push_subs").select("endpoint,sub,prefs").eq("family_id", fid);
   if (onlyUser) q = q.eq("user_id", onlyUser);
-  const { data } = await q; let ok = 0;
-  for (const s of ((data || []) as Sub[]).filter((x) => wants(x, cat) && (!filter || filter(x)))) {
-    try { await webpush.sendNotification(s.sub, JSON.stringify(payload), { TTL: 43200 }); ok++; }
-    catch (e) { const c = (e as { statusCode?: number }).statusCode; if (c === 404 || c === 410) await db.from("push_subs").delete().eq("endpoint", s.endpoint); else console.error("push", c); }
-  }
-  return ok;
+  const { data } = await q; const { ok } = await deliver((data || []) as Sub[], [{ key: "teste", payload }]);
+  return ok.teste || 0;
 }
-const once = async (fid: string, key: string) => !(await db.from("notif_log").insert({ family_id: fid, key })).error;
 
 async function checkFamily(fid: string) {
   const now = Date.now(), L = local(now), sent: string[] = [];
@@ -50,7 +58,9 @@ async function checkFamily(fid: string) {
   const by = (p: string) => (rows || []).filter((r) => r.path.startsWith(p + "/")).map((r) => ({ id: r.path.split("/").pop()!, ...r.data }));
   const cfg = (rows || []).find((r) => r.path === "config/main")?.data || {};
   const baby = cfg.name || "o bebê";
-  const notify = async (key: string, title: string, body: string, tab: string, cat: string, filter?: (s: Sub) => boolean) => { if (await once(fid, key)) { await send(fid, { title, body, url: APP_URL + "#" + tab, tag: key }, undefined, cat, filter); sent.push(key); } };
+  // Os avisos são juntados aqui e enviados no fim, de uma vez (antes: 2 consultas por aviso).
+  const outs = new Map<string, Out>();
+  const notify = (key: string, title: string, body: string, tab: string, cat: string, filter?: (s: Sub) => boolean) => { outs.set(key, { key, payload: { title, body, url: APP_URL + "#" + tab, tag: key }, cat, filter }); };
   const hm = (ms: number) => new Date(ms + TZ * HR).toISOString().slice(11, 16);
   const events = by(`months/${L.ym}/events`).concat(by(`months/${prevYm(L.ym)}/events`));
 
@@ -149,7 +159,19 @@ async function checkFamily(fid: string) {
       await notify(`mes:${L.iso}`, `Hoje ${baby} completa ${idade}!`, fases[months] ? `Começa a fase "${fases[months]}". Veja o que muda no app.` : "Que tal registrar uma conquista de hoje?", fases[months] ? "fases" : "inicio", "marcos");
     }
   }
-  return sent;
+  if (!outs.size) return { sent, retry: 0 };
+  // 1 consulta: registra todas as chaves; só as novas voltam (ON CONFLICT DO NOTHING). A chave garante que o mesmo aviso não sai 2 vezes.
+  const { data: fresh, error } = await db.from("notif_log").upsert([...outs.keys()].map((key) => ({ family_id: fid, key })), { onConflict: "family_id,key", ignoreDuplicates: true }).select("key");
+  if (error) throw error;
+  const todo = (fresh || []).map((r) => outs.get(r.key)!).filter(Boolean);
+  if (!todo.length) return { sent, retry: 0 };
+  const { data: subs } = await db.from("push_subs").select("endpoint,sub,prefs").eq("family_id", fid); // 1 consulta por família
+  const { ok, soft } = await deliver((subs || []) as Sub[], todo);
+  todo.forEach((o) => { if (ok[o.key]) sent.push(o.key); });
+  // falhou em todos os aparelhos por motivo passageiro: apaga a chave para a próxima rodada (5 min) tentar de novo
+  const retry = todo.filter((o) => !ok[o.key] && soft[o.key]).map((o) => o.key);
+  if (retry.length) await db.from("notif_log").delete().eq("family_id", fid).in("key", retry);
+  return { sent, retry: retry.length };
 }
 
 Deno.serve(async (req) => {
@@ -167,6 +189,12 @@ Deno.serve(async (req) => {
   if (req.headers.get("x-cron-secret") !== Deno.env.get("CRON_SECRET")) return json({ error: "forbidden" }, 403);
   const { data } = await db.from("push_subs").select("family_id");
   const out: Record<string, unknown> = {};
-  for (const fid of [...new Set((data || []).map((r) => r.family_id))]) { try { out[fid] = await checkFamily(fid); } catch (e) { console.error(e); out[fid] = "erro"; } }
+  const fams = body.only ? [body.only] : [...new Set((data || []).map((r) => r.family_id))];
+  for (const fid of fams) {
+    const q0 = Q, t0 = Date.now();
+    try { const r = await checkFamily(fid); out[fid] = { sent: r.sent.length, retry: r.retry, q: Q - q0, ms: Date.now() - t0 }; }
+    catch (e) { console.error("familia", fid, e); out[fid] = { erro: String(e).slice(0, 120), q: Q - q0, ms: Date.now() - t0 }; }
+    console.log(JSON.stringify({ fid, ...(out[fid] as object) })); // aparece em Logs da função no Supabase
+  }
   return json(out);
 });

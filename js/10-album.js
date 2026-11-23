@@ -66,8 +66,12 @@ async function exifDate(f){try{const b=new DataView(await f.slice(0,262144).arra
   if((m&0xFF00)!==0xFF00)return null;o+=2+b.getUint16(o+2)}}catch(e){}return null}
 async function bitmap(f){try{return await createImageBitmap(f,{imageOrientation:'from-image'})}catch(e){const u=URL.createObjectURL(f);try{const im=new Image();im.src=u;await im.decode();return im}finally{setTimeout(()=>URL.revokeObjectURL(u),1000)}}}
 function jpeg(src,max,q){const W=src.width,H=src.height,k=Math.min(1,max/Math.max(W,H)),c=document.createElement('canvas');c.width=Math.round(W*k);c.height=Math.round(H*k);c.getContext('2d').drawImage(src,0,0,c.width,c.height);return new Promise((res,rej)=>c.toBlob(b=>b?res({b,w:c.width,h:c.height}):rej(new Error('jpeg')),'image/jpeg',q))}
-let UPL=null;
-function upbar(){let el=$('#upbar');if(!UPL){el&&el.remove();return}if(!el){el=document.createElement('div');el.id='upbar';el.setAttribute('role','status');document.body.appendChild(el)}el.innerHTML=`Enviando ${Math.min(UPL.done+1,UPL.n)} de ${UPL.n}<i><b style="width:${UPL.done/UPL.n*100}%"></b></i>`}
+let UPL=null,UPL_FAIL=null;
+function upbar(){let el=$('#upbar');if(!UPL&&!UPL_FAIL){el&&el.remove();return}if(!el){el=document.createElement('div');el.id='upbar';el.setAttribute('role','status');document.body.appendChild(el)}
+ el.innerHTML=UPL?`Enviando ${Math.min(UPL.done+1,UPL.n)} de ${UPL.n}<i><b style="width:${UPL.done/UPL.n*100}%"></b></i>`
+  :`<span>${UPL_FAIL.files.length} foto${UPL_FAIL.files.length>1?'s':''} não ${UPL_FAIL.files.length>1?'foram enviadas':'foi enviada'}</span> <button class="btn sm primary" data-act="upRetry">Tentar de novo</button> <button class="x" data-act="upX" aria-label="Desistir das fotos com erro">×</button>`}
+A.upRetry=()=>{const f=UPL_FAIL;UPL_FAIL=null;upbar();if(f)return uploadPhotos(f.files,f.fd)};
+A.upX=()=>{UPL_FAIL=null;upbar()};
 function albUpload(fl){const files=[...fl].filter(f=>/^image\//.test(f.type)||/\.(heic|heif|jpe?g|png|webp)$/i.test(f.name));if(!files.length)return;
  const def=ALB.open?.kind==='album'?ALB.open.id:'';const urls=files.slice(0,7).map(f=>URL.createObjectURL(f));
  openModal({title:`Adicionar ${files.length} ${files.length>1?'fotos':'foto'}`,saveLabel:'Enviar',body:`<div class="up-prev">${urls.map(u=>`<img src="${u}" alt="">`).join('')}${files.length>7?`<span>+${files.length-7}</span>`:''}</div>
@@ -79,18 +83,19 @@ function albUpload(fl){const files=[...fl].filter(f=>/^image\//.test(f.type)||/\
 async function uploadPhotos(files,fd){
  if(!navigator.onLine){toast('Para enviar fotos é preciso internet.',true);return}
  if(UPL){toast('Espere o envio atual terminar.',true);return}
- UPL={n:files.length,done:0};upbar();let fail=0,heic=0;const albumId=fd.albumId||'';
- for(const f of files){try{
+ UPL={n:files.length,done:0};UPL_FAIL=null;upbar();let fail=0,heic=0;const albumId=fd.albumId||'',failed=[];
+ for(const f of files){let sent=[];try{
    const date=fd.exif?((await exifDate(f))||isoDate(f.lastModified||Date.now())):(fd.date||isoDate(Date.now()));
    const src=await bitmap(f),full=await jpeg(src,1600,.85),th=await jpeg(src,480,.78);src.close&&src.close();
    const id=newId(),base=`${FAM}/fotos/${id}`;
-   let r=await sb.storage.from('files').upload(base+'.jpg',full.b,{contentType:'image/jpeg'});if(r.error)throw r.error;
-   r=await sb.storage.from('files').upload(base+'_t.jpg',th.b,{contentType:'image/jpeg'});if(r.error)throw r.error;
+   let r=await sb.storage.from('files').upload(base+'.jpg',full.b,{contentType:'image/jpeg'});if(r.error)throw r.error;sent.push(base+'.jpg');
+   r=await sb.storage.from('files').upload(base+'_t.jpg',th.b,{contentType:'image/jpeg'});if(r.error)throw r.error;sent.push(base+'_t.jpg');
    await store.set('photos/'+id,{path:base+'.jpg',thumb:base+'_t.jpg',w:full.w,h:full.h,date,caption:(fd.caption||'').trim(),albumId,fav:false,by:WHO,createdAt:Date.now()});
    if(albumId){const al=S.albums.find(x=>x.id===albumId);if(al&&!al.cover)await store.set('albums/'+albumId,{...strip(al),cover:id})}
-  }catch(e){console.warn(e);fail++;if(/heic|heif/i.test(f.type+f.name))heic++}
+  }catch(e){console.warn(e);fail++;const isHeic=/heic|heif/i.test(f.type+f.name);if(isHeic)heic++;else failed.push(f);
+   if(sent.length)sb.storage.from('files').remove(sent).catch(()=>{})} // desfaz o envio parcial: nada de arquivo órfão
   UPL.done++;upbar()}
- UPL=null;upbar();
+ UPL=null;UPL_FAIL=failed.length?{files:failed,fd}:null;upbar();
  toast(fail?(heic?`${fail} foto(s) em formato HEIC não abriram neste aparelho. Envie pelo iPhone ou como JPG.`:`${files.length-fail} enviada(s), ${fail} com erro.`):(files.length>1?`${files.length} fotos guardadas`:'Foto guardada'),!!fail);
 }
 /* visualizador */
@@ -101,8 +106,8 @@ function drawViewer(){let el=$('#viewer');const p=VW.list[VW.i];if(!p){el&&el.re
   let x0=null,y0=null;el.addEventListener('touchstart',e=>{x0=e.touches[0].clientX;y0=e.touches[0].clientY},{passive:true});
   el.addEventListener('touchend',e=>{if(x0==null)return;const dx=e.changedTouches[0].clientX-x0,dy=e.changedTouches[0].clientY-y0;x0=null;if(Math.abs(dx)>50&&Math.abs(dx)>Math.abs(dy))A[dx<0?'vwNext':'vwPrev']();else if(dy>90&&Math.abs(dy)>Math.abs(dx))A.vwClose()})}
  const th=URLS.get(p.thumb);
- el.innerHTML=`<div class="vw-top"><button class="vw-b" data-act="vwClose" aria-label="Fechar">${ic('x')}</button><span class="vw-n">${VW.i+1} de ${VW.list.length}</span><button class="vw-b${p.fav?' on':''}" data-act="vwFav" aria-label="Favorita">${ic(p.fav?'heartf':'heart')}</button><button class="vw-b" data-act="vwEdit" aria-label="Editar">${ic('pen')}</button></div>
- <div class="vw-img">${imgTag(p.path,'',p.caption||'Foto')}${VW.i>0?`<button class="vw-arrow l" data-act="vwPrev" aria-label="Anterior">${ic('back')}</button>`:''}${VW.i<VW.list.length-1?`<button class="vw-arrow r" data-act="vwNext" aria-label="Próxima">${ic('chev')}</button>`:''}</div>
+ el.innerHTML=`<div class="vw-top"><button class="vw-b" data-act="vwClose" aria-label="Fechar foto">${ic('x')}</button><span class="vw-n">${VW.i+1} de ${VW.list.length}</span><button class="vw-b${p.fav?' on':''}" data-act="vwFav" aria-label="Favorita" aria-pressed="${p.fav?'true':'false'}">${ic(p.fav?'heartf':'heart')}</button><button class="vw-b" data-act="vwEdit" aria-label="Editar legenda, data e álbum da foto">${ic('pen')}</button></div>
+ <div class="vw-img">${imgTag(p.path,'',p.caption||'Foto')}${VW.i>0?`<button class="vw-arrow l" data-act="vwPrev" aria-label="Foto anterior">${ic('back')}</button>`:''}${VW.i<VW.list.length-1?`<button class="vw-arrow r" data-act="vwNext" aria-label="Próxima foto">${ic('chev')}</button>`:''}</div>
  <div class="vw-cap">${p.caption?`<b>${esc(p.caption)}</b>`:''}<span>${p.date?fmtDY(dateOnly(p.date)):''}${photoAge(p)?' · '+photoAge(p):''}${p.by?' · por '+esc(p.by):''}</span></div>`;
  const img=el.querySelector('.vw-img img');if(img&&!img.src&&th&&th.exp>Date.now())img.src=th.url,img.removeAttribute('data-p'),preloadFull(img,p.path);
  hydrate();

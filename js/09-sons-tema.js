@@ -56,7 +56,7 @@ function sndTick(){if(!SND.id)return;if(SND.end){const r=SND.end-Date.now();if(r
 function drawPlayer(){const el=$('#player');if(!el)return;if(!SND.id){el.hidden=true;document.body.classList.remove('playing');return}
  el.hidden=false;document.body.classList.add('playing');const s=SOUNDS.find(x=>x[0]===SND.id),on=sndOn();
  const rem=SND.end?Math.max(0,Math.ceil((SND.end-Date.now())/MIN)):0;
- el.innerHTML=`<div class="in"><span class="ic" style="--c:${s[4]};background:rgb(255 255 255 / .12);color:inherit">${ic(s[3])}</span><div class="tx"><b>${s[1]}</b>${on?(SND.end?`desliga em ${rem} min`:'tocando sem timer'):'pausado'}</div><button class="pb" data-act="sndToggle" aria-label="${on?'Pausar':'Tocar'}">${ic(on?'pause':'play')}</button><button class="pb" data-act="sndStop" aria-label="Parar">${ic('x')}</button></div>`}
+ el.innerHTML=`<div class="in"><span class="ic" style="--c:${s[4]};background:rgb(255 255 255 / .12);color:inherit">${ic(s[3])}</span><div class="tx"><b>${s[1]}</b>${on?(SND.end?`desliga em ${rem} min`:'tocando sem timer'):'pausado'}</div><button class="pb" data-act="sndToggle" aria-label="${on?'Pausar':'Tocar'} ${s[1]}">${ic(on?'pause':'play')}</button><button class="pb" data-act="sndStop" aria-label="Parar o som e fechar o player">${ic('x')}</button></div>`}
 A.snd=id=>sndPlay(id);
 A.sndStop=()=>sndStop();
 A.sndToggle=()=>{if(!SND.a)return;if(SND.a.paused){if(SND.end&&SND.end<Date.now()+MIN&&SND.mins)SND.end=Date.now()+SND.mins*MIN;SND.a.volume=SND.vol;SND.a.play().catch(()=>{})}else SND.a.pause()};

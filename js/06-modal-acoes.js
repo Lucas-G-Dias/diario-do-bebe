@@ -1,13 +1,18 @@
 /* ============ modal ============ */
 let M=null;
 let MCT=null;
-function openModal({title,body,onSave,onDelete,saveLabel='Salvar',mount,noFooter}){clearTimeout(MCT);$('#modal').classList.remove('closing');
- $('#modal').innerHTML=`<div class="ov" data-act="mclose"></div><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="mt"><header><h3 id="mt">${title}</h3><button class="x" type="button" data-act="mclose" aria-label="Fechar">×</button></header>
+let M_OPENER=null;
+/* volta o foco para o botão que abriu o formulário (ou o equivalente, se a tela foi redesenhada) */
+function restoreFocus(){const o=M_OPENER;M_OPENER=null;if(!o||o===document.body)return;
+ let t=document.contains(o)?o:null;if(!t&&o.dataset&&o.dataset.act)t=document.querySelector(`[data-act="${o.dataset.act}"]${o.dataset.id?`[data-id="${CSS.escape(o.dataset.id)}"]`:''}`);
+ if(t)setTimeout(()=>t.focus({preventScroll:true}),0)}
+function openModal({title,body,onSave,onDelete,saveLabel='Salvar',mount,noFooter}){clearTimeout(MCT);if(!M)M_OPENER=document.activeElement;$('#modal').classList.remove('closing');
+ $('#modal').innerHTML=`<div class="ov" data-act="mclose"></div><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="mt"><header><h3 id="mt" tabindex="-1">${title}</h3><button class="x" type="button" data-act="mclose" aria-label="Fechar">×</button></header>
  <form id="mf" novalidate>${body}${noFooter?'':`<footer>${onDelete?'<button type="button" class="btn danger" data-act="mdel">Apagar</button>':''}<span class="sp"></span><button type="button" class="btn ghost" data-act="mclose">Cancelar</button>${onSave?`<button class="btn primary" type="submit">${saveLabel}</button>`:''}</footer>`}</form></div>`;
  M={onSave,onDelete};$('#modal').hidden=false;const f=$('#mf');mount&&mount(f);
- const first=f.querySelector('input:not([type=radio]):not([type=hidden]),select,textarea');if(first&&matchMedia('(min-width:720px)').matches)first.focus();
+ const first=f.querySelector('input:not([type=radio]):not([type=hidden]),select,textarea');if(first&&matchMedia('(min-width:720px)').matches)first.focus();else $('#mt').focus({preventScroll:true});
 }
-function closeModal(){const m=$('#modal');M=null;if(m.hidden)return;m.classList.add('closing');clearTimeout(MCT);MCT=setTimeout(()=>{m.hidden=true;m.innerHTML='';m.classList.remove('closing')},190)}
+function closeModal(){const m=$('#modal');M=null;if(m.hidden)return;restoreFocus();m.classList.add('closing');clearTimeout(MCT);MCT=setTimeout(()=>{m.hidden=true;m.innerHTML='';m.classList.remove('closing')},190)}
 const fdata=f=>Object.fromEntries(new FormData(f));
 
 /* ---------- formulários de eventos ---------- */
@@ -132,7 +137,7 @@ A.vaxSched=id=>{const v=VAX.find(x=>x[0]===id),st=vaxStatus(v);closeModal();open
 /* exames */
 let XF=[],UPLOADING=0;
 const fpath=f=>f.path||f.id;
-const filesHtml=()=>XF.length?XF.map(f=>`<span class="file"><a href="#" data-act="fileOpen" data-id="${esc(fpath(f))}">${esc(f.name)}</a><button type="button" data-act="xfDel" data-id="${esc(fpath(f))}" aria-label="Remover anexo">×</button></span>`).join(''):'<span class="hint">Nenhum anexo</span>';
+const filesHtml=()=>XF.length?XF.map(f=>`<span class="file"><a href="#" data-act="fileOpen" data-id="${esc(fpath(f))}">${esc(f.name)}</a><button type="button" data-act="xfDel" data-id="${esc(fpath(f))}" aria-label="Remover anexo ${esc(f.name)}">×</button></span>`).join(''):'<span class="hint">Nenhum anexo</span>';
 function exForm(e){XF=[...(e.files||[])];
  return`${fld('Exame',`<input name="name" id="x-name" list="exlist" value="${esc(e.name||'')}" required placeholder="Ex.: Ultrassom de quadril">`)}<datalist id="exlist">${EX_SUGG.map(n=>`<option value="${n}">`).join('')}</datalist>
  <div class="frow">${fld('Tipo',`<select name="cat" id="x-cat">${EX_CATS.map(([k,l])=>`<option value="${k}"${(e.cat||'outro')===k?' selected':''}>${l}</option>`).join('')}</select>`)}${fld('Pedido por',`<input name="reqBy" id="x-req" value="${esc(e.reqBy||'')}" placeholder="Ex.: Dra. Ana, pediatra">`)}</div>
@@ -144,7 +149,7 @@ function exForm(e){XF=[...(e.files||[])];
   <div class="fld"><span>Como veio</span>${seg('outcome',[['normal','Normal'],['alterado','Alterado'],['aguardando','Falta o médico ver']],e.outcome||'normal')}</div>
   ${fld('O que diz o resultado',`<textarea name="result" id="x-res" placeholder="Valores principais, o que o médico falou…">${esc(e.result||'')}</textarea>`)}
  </div>
- <div class="fld"><span>Anexos (foto ou PDF do pedido e do resultado)</span><div class="files" id="x-files">${filesHtml()}</div>
+ <div class="fld"><span>Anexos (foto ou PDF do pedido e do resultado)</span><div class="files" id="x-files" aria-live="polite">${filesHtml()}</div>
   <input type="file" id="x-file" accept="image/png,image/jpeg,image/webp,image/heic,application/pdf" multiple></div>
  ${fld('Observações',`<textarea name="notes" id="x-notes" placeholder="Preparo, jejum, documentos para levar…">${esc(e.notes||'')}</textarea>`)}
  <input type="hidden" name="screen" value="${esc(e.screen||'')}">`}

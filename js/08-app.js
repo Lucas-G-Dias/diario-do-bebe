@@ -12,17 +12,17 @@ function render(){
  const keep=k=>{if(app.dataset.screen===k)return true;app.dataset.screen=k;return false};
  const ae=document.activeElement;
  if(ae&&app.contains(ae)&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)&&!/^(radio|checkbox|range)$/.test(ae.type)&&ae.id!=='dayPick'){RENDER_PENDING=true;return}
- if(AUTH==='loading'){app.dataset.screen='';app.innerHTML=`<div class="wrap">${BRAND}<div class="top"><div class="who-baby"><div class="age">Abrindo…</div></div></div></div>`;return}
+ if(AUTH==='loading'){app.dataset.screen='';app.innerHTML=skelView('Abrindo o diário…');return}
  if(!ME){if(!keep('login-'+LOGIN_MODE))app.innerHTML=loginView();return}
  if(!FAM){if(!keep('family'))app.innerHTML=familyView();return}
- if(S.cfg===undefined){app.dataset.screen='';app.innerHTML=`<div class="wrap">${BRAND}<div class="top"><div class="who-baby"><div class="age">${S.stale?'Os dados ainda não responderam. Verifique a conexão.':'Carregando…'}</div></div></div></div>`;return}
+ if(S.cfg===undefined){app.dataset.screen='';app.innerHTML=S.stale?`<div class="wrap">${BRAND}${errCard()}</div>`:skelView('Carregando os dados…');return}
  if(S.cfg===null){if(!keep('setup'))app.innerHTML=setupView();return}
  app.dataset.screen='main';
  S.tab=pageOf(S.tab);
  const a=age(),tab=S.tab,enter=LAST_TAB!==tab;LAST_TAB=tab;
  const scrollY=window.scrollY,dst=diaperStats();
  const off=!navigator.onLine,nq=OUTBOX.length;
- const banner=(off||nq)?`<div class="offline"><span class="ic" style="--c:var(--warn)">${ic('cloudoff')}</span><div><b>${off?'Sem internet':'Enviando registros…'}</b>${nq?`${nq} ${nq>1?'registros guardados':'registro guardado'} no celular${off?', enviados quando a conexão voltar.':'.'}`:'Pode registrar normalmente. Tudo é enviado quando a conexão voltar.'}</div></div>`:S.stale?`<div class="banner">Não deu para atualizar agora. Mostrando os últimos dados salvos.</div>`:'';
+ const banner=(off||nq)?`<div class="offline"><span class="ic" style="--c:var(--warn)">${ic('cloudoff')}</span><div><b>${off?'Sem internet':'Enviando registros…'}</b>${nq?`${nq} ${nq>1?'registros guardados':'registro guardado'} no celular${off?', enviados quando a conexão voltar.':'.'}`:'Pode registrar normalmente. Tudo é enviado quando a conexão voltar.'}</div></div>`:S.stale?`<div class="banner" role="status">Não deu para atualizar agora. Mostrando os últimos dados salvos. <button class="linkbtn" data-act="retry">Tentar de novo</button></div>`:'';
  const menuBadge=dst.st==='bad'||dst.st==='warn'||shopping().length>0||VAX.some(v=>vaxStatus(v).s==='late');
  const bar=tab==='inicio'
   ?`<span class="logo">${LOGO}</span><div class="grow"><div class="t1">${esc(S.cfg.name||'Bebê')}</div><div class="t2">${esc(ageText(a))}</div></div><button class="icon-btn" data-act="themeToggle" aria-label="${isDark()?'Usar tema claro':'Usar tema escuro'}">${ic(isDark()?'sun':'moon')}</button><button class="who-chip" data-act="tab" data-id="ajustes">${esc(WHO||'Você')}</button>`
@@ -30,8 +30,8 @@ function render(){
   :`<button class="back" ${tab==='album'&&ALB.open?'data-act="albBack"':'data-act="tab" data-id="menu"'} aria-label="Voltar">${ic('back')}</button><div class="grow"><h1>${tab==='album'?esc(albTitle()):PAGES[tab]}</h1></div>${tab==='album'&&!ALB.open?`<button class="icon-btn" data-act="albAdd" aria-label="Adicionar fotos">${ic('plus')}</button>`:''}${tab==='enxoval'&&S.enx.length?`<button class="icon-btn" data-act="enxAdd" aria-label="Adicionar item">${ic('plus')}</button>`:''}`;
  const nb=(id,i,l,badge)=>`<button class="nb" data-act="tab" data-id="${id}"${(tab===id||(id==='menu'&&!ROOT.includes(tab)))?' aria-current="page"':''}>${ic(i)}${badge?'<span class="badge"></span>':''}${l}</button>`;
  app.innerHTML=`<header class="appbar"><div class="in">${bar}</div></header>
- <main class="wrap view${enter?' view-enter':''}">${banner}${VIEWS[tab]()}</main>
- <nav class="nav" aria-label="Navegação"><div class="in">${nb('inicio','home','Início')}${nb('diario','list','Diário')}<button class="fab" data-act="fab" aria-label="Registrar">${ic('plus')}</button>${nb('sons','music','Sons')}${nb('menu','grid','Menu',menuBadge)}</div></nav>`;
+ <main class="wrap view${enter?' view-enter':''}">${banner}${pageBody(tab)}</main>
+ <nav class="nav" aria-label="Navegação"><div class="in">${nb('inicio','home','Início')}${nb('diario','list','Diário')}<button class="fab" data-act="fab" aria-label="Novo registro: fralda, mamada, sono e mais" aria-haspopup="dialog">${ic('plus')}</button>${nb('sons','music','Sons')}${nb('menu','grid','Menu',menuBadge)}</div></nav>`;
  if(!enter)window.scrollTo(0,scrollY);
  hydrate();
  if(!ONB_SHOWN&&!lsGet('ddb-onb')){ONB_SHOWN=true;setTimeout(showOnb,450)}
@@ -70,7 +70,7 @@ VIEWS.inicio=()=>{
  const pct=ph.to<999&&a?Math.min(100,Math.max(3,(a.months-ph.from)/(ph.to-ph.from)*100)):100;
  const recent=ds.list.slice(0,5);
  return`<div class="now">${t1}${t2}${t3}</div>
- ${al.length?`<div class="alerts">${al.map(x=>`<div class="alert"><span class="ic" style="--c:${x.c}">${ic(x.i)}</span><div class="tx"><b>${esc(x.t)}</b>${x.s?`<span>${esc(x.s)}</span>`:''}</div><button class="btn sm" data-act="${x.a}"${x.id?` data-id="${esc(x.id)}"`:''}>${x.l}</button>${x.x?`<button class="x" data-act="${x.x}" aria-label="Dispensar">×</button>`:''}</div>`).join('')}</div>`:''}
+ ${al.length?`<div class="alerts">${al.map(x=>`<div class="alert"><span class="ic" style="--c:${x.c}">${ic(x.i)}</span><div class="tx"><b>${esc(x.t)}</b>${x.s?`<span>${esc(x.s)}</span>`:''}</div><button class="btn sm" data-act="${x.a}"${x.id?` data-id="${esc(x.id)}"`:''} aria-label="${x.l}: ${esc(x.t)}">${x.l}</button>${x.x?`<button class="x" data-act="${x.x}" aria-label="Dispensar aviso: ${esc(x.t)}">×</button>`:''}</div>`).join('')}</div>`:''}
  ${nextsCard()}
  ${stockPanel()}
  <div class="card"><div class="card-h"><h2>Hoje</h2><button class="linkbtn" data-act="tab" data-id="diario">Ver diário</button></div>
@@ -109,7 +109,7 @@ VIEWS.menu=()=>{
 
 /* ---------- Como usar ---------- */
 VIEWS.tutorial=()=>{const H=(i,c,t,st)=>`<details class="howto"><summary><span class="ic" style="--c:${c}">${ic(i)}</span>${t}</summary><ol>${st.map(s=>`<li>${s}</li>`).join('')}</ol></details>`;
- return`<div class="card" style="display:flex;gap:12px;align-items:center"><span class="ic lg">${ic('book')}</span><div style="flex:1"><b>Apresentação rápida</b><div class="small muted">1 minuto, com o principal.</div></div><button class="btn sm primary" data-act="showOnb">Ver</button></div>
+ return`<div class="card" style="display:flex;gap:12px;align-items:center"><span class="ic lg">${ic('book')}</span><div style="flex:1"><b>Apresentação rápida</b><div class="small muted">1 minuto, com o principal.</div></div><button class="btn sm primary" data-act="showOnb" aria-label="Ver a apresentação rápida">Ver</button></div>
  ${H('moon','var(--sleep)','Registrar o sono',['Na Início, toque no cartão <b>Sono</b> quando o bebê dormir.','Toque de novo quando acordar. O tempo é contado sozinho.','Esqueceu? Use <b>+ › Sono</b> e ajuste o horário.'])}
  ${H('bottle','var(--feed)','Registrar mamada',['Toque em <b>Mamada</b>: peito, mamadeira ou comidinha.','No peito, use <b>Começar a mamar agora</b> para cronometrar. O app sugere o próximo lado.','Para encerrar, toque no cartão laranja.'])}
  ${H('diaper','var(--diaper)','Fraldas e estoque',['Toque em <b>Fralda</b> e escolha xixi, cocô, os dois ou seca.','Cada troca desconta 1 fralda do estoque.','Chegou pacote? <b>+ › Comprei fraldas</b>. O app avisa quando faltarem 3 dias.'])}

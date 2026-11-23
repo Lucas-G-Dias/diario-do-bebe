@@ -1,10 +1,10 @@
 /* ---------- Agenda ---------- */
 function agRow(a){if(a._exam){const t=dateOnly(a.date),d=Math.round((dayStart(t)-dayStart(Date.now()))/DAY);const when=d===0?'Hoje':d===1?'Amanhã':d>1&&d<7?WD[new Date(t).getDay()]:fmtDY(t);
- return`<div class="row"><div style="min-width:64px"><div class="ttl">${when}</div><div class="small muted num">${a.time||''}</div></div><div class="main"><div class="ttl">${esc(a.title)}</div><div class="small muted">Exame${a.place?' · '+esc(a.place):''}</div></div>${gcBtn('exGcal',a)}<button class="btn sm ghost" data-act="exEdit" data-id="${a.id}">Abrir</button></div>`}
+ return`<div class="row"><div style="min-width:64px"><div class="ttl">${when}</div><div class="small muted num">${a.time||''}</div></div><div class="main"><div class="ttl">${esc(a.title)}</div><div class="small muted">Exame${a.place?' · '+esc(a.place):''}</div></div>${gcBtn('exGcal',a)}<button class="btn sm ghost" data-act="exEdit" data-id="${a.id}" aria-label="Abrir exame: ${esc(a.title)}">Abrir</button></div>`}
  const t=dateOnly(a.date),d=Math.round((dayStart(t)-dayStart(Date.now()))/DAY);const tp=(AG_TYPES.find(x=>x[0]===a.type)||AG_TYPES[3])[1];
  const when=d===0?'Hoje':d===1?'Amanhã':d>1&&d<7?WD[new Date(t).getDay()]:fmtDY(t);
  return`<div class="row" ${a.done?'style="opacity:.6"':''}><div style="min-width:64px"><div class="ttl">${when}</div><div class="small muted num">${a.time||''}</div></div><div class="main"><div class="ttl">${esc(a.title)}</div><div class="small muted">${tp}${a.place?' · '+esc(a.place):''}${a.notes?' · '+esc(a.notes):''}</div></div>
- ${a.done?'':gcBtn('agGcal',a)}<button class="btn sm${a.done?'':' ghost'}" data-act="agDone" data-id="${a.id}">${a.done?'Feito':'Marcar feito'}</button><button class="btn sm ghost" data-act="agEdit" data-id="${a.id}">Editar</button></div>`}
+ ${a.done?'':gcBtn('agGcal',a)}<button class="btn sm${a.done?'':' ghost'}" data-act="agDone" data-id="${a.id}" aria-label="${a.done?'Feito':'Marcar feito'}: ${esc(a.title)}"${a.done?' aria-pressed="true"':''}>${a.done?'Feito':'Marcar feito'}</button><button class="btn sm ghost" data-act="agEdit" data-id="${a.id}" aria-label="Editar compromisso: ${esc(a.title)}">Editar</button></div>`}
 VIEWS.agenda=()=>{
  const up=upcoming(),t0=dayStart(Date.now());const past=S.agenda.filter(a=>a.done||dateOnly(a.date)<t0).sort((a,b)=>b.date.localeCompare(a.date));
  const byMonth={};up.forEach(a=>{const k=a.date.slice(0,7);(byMonth[k]=byMonth[k]||[]).push(a)});
@@ -25,7 +25,7 @@ function exRow(e){const cat=(EX_CATS.find(c=>c[0]===e.cat)||EX_CATS[6])[1];const
  return`<div class="row"><div class="main" data-act="exEdit" data-id="${e.id}" style="cursor:pointer"><div class="ttl">${esc(e.name)} ${exPill(e)}</div>
  <div class="small muted">${cat} · ${when}${e.place?' · '+esc(e.place):''}${e.reqBy?' · pedido por '+esc(e.reqBy):''}${nf?` · ${nf} anexo${nf>1?'s':''}`:''}</div>
  ${e.status==='resultado'&&e.result?`<div class="snip">${esc(e.result.length>160?e.result.slice(0,160)+'…':e.result)}</div>`:''}</div>
- ${e.status==='agendado'&&e.date?gcBtn('exGcal',e):''}<button class="btn sm ghost" data-act="exEdit" data-id="${e.id}">Abrir</button></div>`}
+ ${e.status==='agendado'&&e.date?gcBtn('exGcal',e):''}<button class="btn sm ghost" data-act="exEdit" data-id="${e.id}" aria-label="Abrir exame: ${esc(e.name)}">Abrir</button></div>`}
 VIEWS.exames=()=>{
  const by=k=>S.exams.filter(e=>e.status===k);
  const pend=S.exams.filter(e=>e.status==='pedido'||e.status==='agendado').sort((a,b)=>(a.date||'9999').localeCompare(b.date||'9999'));
@@ -59,7 +59,7 @@ VIEWS.saude=()=>{
  return`
  <div class="sec-h sec-top"><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-act="medAdd">Registrar remédio</button><button class="btn" data-act="tempAdd">Registrar temperatura</button></div></div>
  <div class="grid g2">
-  <div class="card"><div class="card-h"><h2>Ficha do bebê</h2><button class="linkbtn" data-act="tab" data-id="ajustes">Editar</button></div>
+  <div class="card"><div class="card-h"><h2>Ficha do bebê</h2><button class="linkbtn" data-act="tab" data-id="ajustes" aria-label="Editar ficha do bebê (abre Ajustes)">Editar</button></div>
    <div class="rows">
     ${[['Tipo sanguíneo',c.blood],['Alergias',c.allergies],['Pediatra',c.pedName],['Telefone do pediatra',c.pedPhone],['Plano de saúde',c.plan],['Carteirinha / SUS',c.card]].map(([k,v])=>`<div class="row"><div class="main"><div class="small muted">${k}</div><div class="ttl" style="user-select:all">${v?esc(v):'<span class="muted" style="font-weight:400">não informado</span>'}</div></div></div>`).join('')}
    </div></div>
