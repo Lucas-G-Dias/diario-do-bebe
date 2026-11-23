@@ -46,6 +46,7 @@ const HELP=[
 VIEWS.ajuda=()=>{const from=PAGES[HELP_FROM]&&TOURS[HELP_FROM]?HELP_FROM:'';let g='';
  return`<div class="help-top">
   <button class="hcard impact" data-act="tourMain"><span class="ic lg">${ic('route')}</span><b>Fazer o tour</b><span>1 minuto, passando por cada lugar</span></button>
+  <button class="hcard" data-act="tab" data-id="guia"><span class="ic lg" style="--c:var(--accent)">${ic('book')}</span><b>Guia dos pais</b><span>Dúvidas de cólica, febre, sono e mais</span></button>
   ${from?`<button class="hcard" data-act="tourHere"><span class="ic lg" style="--c:var(--accent)">${ic('route')}</span><b>Tour de ${esc(PAGES[from])}</b><span>Só o que tem nessa tela</span></button>`:''}
  </div>
  <label class="hsearch">${ic('search')}<input id="helpQ" type="search" placeholder="Buscar: fralda, vacina, foto…" aria-label="Buscar na ajuda" autocomplete="off"></label>

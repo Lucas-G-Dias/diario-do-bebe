@@ -46,6 +46,9 @@ Toda a interface e as mensagens são em português do Brasil.
 | `js/22-consulta.js` | Para a consulta: perguntas, resumo de 14 dias, backup |
 | `js/23-desenvolvimento.js` | marcos da Caderneta por idade, previsão da próxima soneca |
 | `js/24-alimentos.js` | introdução alimentar (marca sozinho pelo registro Comidinha) |
+| `js/25-guia-duvidas.js` | Guia dos pais: dúvidas comuns com "procure atendimento se" (SBP/MS) |
+| `js/26-guia.js` | Guia: passo a passo desenhado, onde comprar, pesquisa de preço no enxoval |
+| `js/27-medalhas.js` | medalhas em SVG (bronze → lenda), história personalizada, compartilhar |
 | `supabase/emails-pt.json` | e-mails em português (aplicar depois de configurar o SMTP) |
 | `css/identidade.css` | cores 60/30/10 (`--impact` papaya só para ação e comemoração), tour, ajuda, conquistas |
 | `js/14-boot.js` | assinaturas de dados, carregar família, início do app (sempre o último) |

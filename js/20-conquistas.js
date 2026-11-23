@@ -86,7 +86,7 @@ VIEWS.conquistas=()=>{loadStats();const g=gameStats(),now=Date.now(),max=Math.ma
  ${Object.keys(g.wk).length?`<div class="card"><div class="card-h"><h2>Esta semana</h2><span class="small muted">registros por pessoa</span></div>${Object.entries(g.wk).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="wkrow"><span>${esc(k)}</span><i><b style="width:${v/max*100}%"></b></i><b>${v}</b></div>`).join('')}</div>`:''}
  ${[...new Set(BADGES.map(x=>x[3]))].map(grp=>{const L=BADGES.filter(x=>x[3]===grp),n=L.filter(x=>g.got.includes(x[0])).length;
   return`<div class="card"><div class="card-h"><h2>${grp}</h2><span class="small muted">${n} de ${L.length}</span></div><div class="badges">${L.map(x=>{const[id,i,c,,t,how,pr]=x,on=g.got.includes(id),[cur,tot]=pr(g);
-   return`<div class="bdg${on?' on':''}" style="--c:${c}"><span class="ic">${ic(on?i:'lock')}</span><b>${t}</b>${on?'<span>Conquistada</span>':`<span>${how}</span>${tot>1?`<i class="bp" role="img" aria-label="${Math.min(cur,tot)} de ${tot}"><b style="width:${Math.min(100,cur/tot*100)}%"></b></i><span class="small">${Math.min(cur,tot).toLocaleString('pt-BR')} / ${tot.toLocaleString('pt-BR')}</span>`:''}`}</div>`}).join('')}</div></div>`}).join('')}`};
+   return`<button class="bdg${on?' on':''}" style="--c:${c}" data-act="medal" data-id="${id}" aria-label="${t}: ${on?'conquistada, '+TIERS[tierOf(id)][0]:'faltam '+Math.max(0,tot-cur).toLocaleString('pt-BR')}">${medalSvg(x,on,Math.min(1,cur/(tot||1)))}<b>${t}</b>${on?'<span>Conquistada</span>':`<span>${how}</span>${tot>1?`<span class="small">${Math.min(cur,tot).toLocaleString('pt-BR')} / ${tot.toLocaleString('pt-BR')}</span>`:''}`}</button>`}).join('')}</div></div>`}).join('')}`};
 /* confere novas medalhas depois que os dados chegam; comemora uma vez só (vale para os dois aparelhos) */
 let GAME_T=null;
 function checkGame(){clearTimeout(GAME_T);GAME_T=setTimeout(async()=>{
@@ -98,6 +98,6 @@ function checkGame(){clearTimeout(GAME_T);GAME_T=setTimeout(async()=>{
  if(fresh.length)celebrate(fresh.map(id=>BADGES.find(x=>x[0]===id)))},1500)}
 function celebrate(list){let el=$('#cele');el?.remove();el=document.createElement('div');el.id='cele';el.setAttribute('role','status');
  el.innerHTML=`<div class="conf" aria-hidden="true">${Array.from({length:14},(_,i)=>`<i style="--x:${(i*37)%100}%;--d:${(i%5)*.08}s;--r:${i*47}deg"></i>`).join('')}</div>
- <span class="ic lg">${ic(list[0][1])}</span><div class="grow"><small>${list.length>1?list.length+' medalhas novas!':'Medalha nova!'}</small><b>${list.map(x=>x[4]).join(' · ')}</b></div><button class="btn sm" data-act="celeGo">Ver</button>`;
+ ${medalSvg(list[0],true)}<div class="grow"><small>${list.length>1?list.length+' medalhas novas!':'Medalha nova!'}</small><b>${list.map(x=>x[4]).join(' · ')}</b></div><button class="btn sm" data-act="celeGo">Ver</button>`;
  document.body.appendChild(el);setTimeout(()=>el.remove(),6000)}
 A.celeGo=()=>{$('#cele')?.remove();A.tab('conquistas')};

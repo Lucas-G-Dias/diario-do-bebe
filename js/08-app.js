@@ -1,5 +1,5 @@
 /* ============ render (v2: app com navegação inferior) ============ */
-const PAGES={inicio:'Início',diario:'Diário',sons:'Sons',menu:'Menu',estoque:'Estoque',crescimento:'Crescimento',agenda:'Agenda',exames:'Exames',saude:'Vacinas e saúde',fases:'Fase e marcos',ajustes:'Ajustes',tutorial:'Central de ajuda',consulta:'Para a consulta',alimentos:'Introdução alimentar',ajuda:'Central de ajuda',conquistas:'Conquistas',album:'Álbum',fraldas:'Fraldas e lenços',enxoval:'Enxoval'};
+const PAGES={inicio:'Início',diario:'Diário',sons:'Sons',menu:'Menu',estoque:'Estoque',crescimento:'Crescimento',agenda:'Agenda',exames:'Exames',saude:'Vacinas e saúde',fases:'Fase e marcos',ajustes:'Ajustes',tutorial:'Central de ajuda',consulta:'Para a consulta',guia:'Guia dos pais',alimentos:'Introdução alimentar',ajuda:'Central de ajuda',conquistas:'Conquistas',album:'Álbum',fraldas:'Fraldas e lenços',enxoval:'Enxoval'};
 const ALIAS={hoje:'inicio',registros:'diario'};
 const pageOf=t=>{t=ALIAS[t]||t;return PAGES[t]?t:'inicio'};
 const TABS=Object.entries(PAGES);
@@ -108,6 +108,7 @@ VIEWS.menu=()=>{
   ${T('album','image','var(--feed)','Álbum de fotos',S.photos.length?`${S.photos.length} ${S.photos.length===1?'foto':'fotos'} · ${S.albums.length} ${S.albums.length===1?'álbum':'álbuns'}`:'Fotos separadas por fase')}
   ${T('fases','sprout','var(--growth)','Fase e marcos',age()?phaseOf(age()).name:'')}</div>
  <div class="mgroup"><div class="label">App</div>
+  ${T('guia','book','var(--accent)','Guia dos pais','Dúvidas comuns, passo a passo e onde comprar')}
   ${T('conquistas','trophy','var(--impact)','Conquistas','Sequência, níveis e medalhas da família')}
   ${T('ajuda','help','var(--accent)','Central de ajuda','Tour, explicações e atalhos')}
   ${T('ajustes','gear','var(--other)','Ajustes','Família, avisos e dados do bebê')}</div>`;

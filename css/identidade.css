@@ -30,7 +30,7 @@
 .bdg b{color:var(--ink);font-size:13px;line-height:1.2}.bdg .ic{width:40px;height:40px;border-radius:50%;background:var(--line);color:var(--muted)}
 .bdg.on{background:color-mix(in srgb,var(--c) 12%,var(--surface))}.bdg.on .ic{background:var(--c);color:#fff}
 /* comemoração */
-#cele{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 92px);transform:translateX(-50%);z-index:80;width:min(92vw,420px);display:flex;gap:12px;align-items:center;padding:12px 12px 12px 14px;border-radius:18px;background:linear-gradient(120deg,var(--impact),var(--sun));color:var(--impact-ink);box-shadow:0 14px 34px rgb(0 0 0 / .28);animation:celeIn .45s cubic-bezier(.2,1.4,.4,1)}
+#cele{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 92px);transform:translateX(-50%);z-index:45;width:min(92vw,420px);display:flex;gap:12px;align-items:center;padding:12px 12px 12px 14px;border-radius:18px;background:linear-gradient(120deg,var(--impact),var(--sun));color:var(--impact-ink);box-shadow:0 14px 34px rgb(0 0 0 / .28);animation:celeIn .45s cubic-bezier(.2,1.4,.4,1)}
 #cele .ic{background:rgb(255 255 255 / .45);color:var(--impact-ink)}#cele small{display:block;font-weight:800;text-transform:uppercase;font-size:11px;letter-spacing:.05em}#cele b{font:700 16px var(--display)}
 #cele .btn{background:var(--impact-ink);color:#fff;border-color:transparent}
 @keyframes celeIn{from{transform:translate(-50%,40px) scale(.9);opacity:0}}
@@ -81,3 +81,17 @@ html{scroll-padding-top:80px;scroll-padding-bottom:110px}
 .devmore{margin-top:8px}.devmore summary{cursor:pointer;font-weight:700;font-size:14px;color:var(--accent);padding:6px 0}
 .foods{display:flex;flex-wrap:wrap;gap:6px}.food{display:inline-flex;gap:4px;align-items:center;min-height:34px;padding:6px 11px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:600 13px var(--body);cursor:pointer}
 .food svg{width:14px;height:14px}.food.on{background:color-mix(in srgb,var(--c) 16%,var(--surface));border-color:color-mix(in srgb,var(--c) 50%,var(--line));font-weight:800}
+/* v12: medalhas desenhadas e Guia dos pais */
+.bdg{border:0;font:inherit;cursor:pointer;padding:10px 4px 12px}.bdg .medal{margin:-2px auto 2px;filter:drop-shadow(0 4px 6px rgb(0 0 0 / .12))}
+.bdg:not(.on) .medal{filter:none;opacity:.9}.bdg.on{background:color-mix(in srgb,var(--c) 10%,var(--surface))}
+.medal .shine{animation:shine 3.2s ease-in-out infinite}@keyframes shine{0%,60%{transform:rotate(25deg) translateX(0)}100%{transform:rotate(25deg) translateX(120px)}}
+.medal-big{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;padding:4px 6px 8px}.medal-big p{margin:4px 0;line-height:1.45}
+.medal-big .medal{filter:drop-shadow(0 10px 16px rgb(0 0 0 / .2));animation:celeIn .5s cubic-bezier(.2,1.4,.4,1)}
+.tier{font:800 12px var(--body);text-transform:uppercase;letter-spacing:.08em;padding:4px 12px;border-radius:999px;background:linear-gradient(120deg,var(--t1),var(--t2));color:#1a1a1a}
+#cele .medal{width:52px;height:62px;flex:none}
+.scene{width:72px;height:58px;flex:none;border-radius:12px;background:var(--surface2)}.howto.step summary{display:flex;gap:12px;align-items:center}
+.faq p{margin:8px 0;line-height:1.5}.faq-al{margin:8px 0;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--bad) 10%,var(--surface));border-left:4px solid var(--bad);font-size:14px;line-height:1.45}.faq-al b{display:block;color:var(--bad)}
+a.food,a.chip{text-decoration:none}
+@media (prefers-reduced-motion:reduce){.medal .shine,.medal-big .medal{animation:none!important}}
+.faq>p,.faq-al,.faq>.linkbtn{margin-left:14px;margin-right:14px}
+#mt:focus,.t-pop h3:focus{outline:none}
