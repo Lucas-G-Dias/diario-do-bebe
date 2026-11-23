@@ -10,11 +10,12 @@ function subscribeAll(){
  store.col('photos',l=>{S.photos=l;render()});
  store.col('enxoval',l=>{S.enx=l;render()});
  store.col('albums',l=>{S.albums=l;render()});
+ store.doc('game/main',d=>{S.game=d||{};render()});
  store.col('albnotes',l=>{S.albnotes=Object.fromEntries(l.map(x=>[x.id,x]));render()});
  subMonths();
 }
 let curYm=ymOf(Date.now());
-setInterval(()=>{const ym=ymOf(Date.now());if(ym!==curYm){curYm=ym;if(FAM)subMonths()}if(!M&&S.cfg&&!['ajustes','tutorial','sons','album'].includes(S.tab))render()},30000);
+setInterval(()=>{const ym=ymOf(Date.now());if(ym!==curYm){curYm=ym;if(FAM)subMonths()}if(!M&&S.cfg&&!['ajustes','tutorial','ajuda','sons','album'].includes(S.tab))render()},30000);
 async function loadMembers(){const{data}=await sb.from('members').select('user_id,display_name').eq('family_id',FAM);MEMBERS=data||[];render()}
 async function loadFamily(){
  try{OUTBOX=JSON.parse(lsGet(outKey())||'[]')}catch(e){OUTBOX=[]}

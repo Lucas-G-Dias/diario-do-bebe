@@ -39,6 +39,11 @@ Toda a interface e as mensagens são em português do Brasil.
 | `js/15-resumo.js` | cartão "Próximos" da Início (consulta, vacina, exame, peso) |
 | `js/16-estados.js` | esqueleto de carregamento, erro com "Tentar de novo" (`pageBody`, `PAGE_DATA`) |
 | `js/17-acessibilidade.js` | botões de verdade para teclado/leitor, dica nos ícones, foco preso no diálogo |
+| `js/18-ajuda.js` | Central de ajuda (busca, miniaturas ilustrativas), ícones extras |
+| `js/19-tour.js` | tour guiado com destaque (`TOURS.main` e um por tela; `startTour`, `pageTour`) |
+| `js/20-conquistas.js` | sequência, nível, medalhas (`game/main`), comemoração |
+| `js/21-atalhos.js` | "Repetir" da Início, teclas, `?a=` dos atalhos do ícone |
+| `css/identidade.css` | cores 60/30/10 (`--impact` papaya só para ação e comemoração), tour, ajuda, conquistas |
 | `js/14-boot.js` | assinaturas de dados, carregar família, início do app (sempre o último) |
 | `sw.js` | modo offline e notificações push |
 | `supabase/schema.sql` | tabelas e regras de acesso (RLS) |
@@ -57,6 +62,7 @@ Toda a interface e as mensagens são em português do Brasil.
   O `title` é posto sozinho por `17-acessibilidade.js`.
 - Ação assíncrona: devolva a Promise em `A.nome`; o botão fica ocupado sozinho (`busy()` em `07-dom.js`).
 - Leitura do banco: sempre por `store.col/doc` (vira 1 consulta em lote). `npm test` falha se voltar a N+1.
+- Tela nova com passo a passo: acrescente em `TOURS` (19-tour.js) e um tópico em `HELP` (18-ajuda.js).
 - Decisões da auditoria (acessibilidade, carregamento, N+1, avisos): `docs/AUDITORIA.md`.
 - Segredos (chave de serviço, VAPID privada, segredo do cron) ficam só no
   Supabase. Nunca no repositório. A chave `anon` no `02-dados.js` é pública.

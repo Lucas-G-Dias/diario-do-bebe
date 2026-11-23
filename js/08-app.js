@@ -1,5 +1,5 @@
 /* ============ render (v2: app com navegação inferior) ============ */
-const PAGES={inicio:'Início',diario:'Diário',sons:'Sons',menu:'Menu',estoque:'Estoque',crescimento:'Crescimento',agenda:'Agenda',exames:'Exames',saude:'Vacinas e saúde',fases:'Fase e marcos',ajustes:'Ajustes',tutorial:'Como usar',album:'Álbum',fraldas:'Fraldas e lenços',enxoval:'Enxoval'};
+const PAGES={inicio:'Início',diario:'Diário',sons:'Sons',menu:'Menu',estoque:'Estoque',crescimento:'Crescimento',agenda:'Agenda',exames:'Exames',saude:'Vacinas e saúde',fases:'Fase e marcos',ajustes:'Ajustes',tutorial:'Central de ajuda',ajuda:'Central de ajuda',conquistas:'Conquistas',album:'Álbum',fraldas:'Fraldas e lenços',enxoval:'Enxoval'};
 const ALIAS={hoje:'inicio',registros:'diario'};
 const pageOf=t=>{t=ALIAS[t]||t;return PAGES[t]?t:'inicio'};
 const TABS=Object.entries(PAGES);
@@ -25,8 +25,8 @@ function render(){
  const banner=(off||nq)?`<div class="offline"><span class="ic" style="--c:var(--warn)">${ic('cloudoff')}</span><div><b>${off?'Sem internet':'Enviando registros…'}</b>${nq?`${nq} ${nq>1?'registros guardados':'registro guardado'} no celular${off?', enviados quando a conexão voltar.':'.'}`:'Pode registrar normalmente. Tudo é enviado quando a conexão voltar.'}</div></div>`:S.stale?`<div class="banner" role="status">Não deu para atualizar agora. Mostrando os últimos dados salvos. <button class="linkbtn" data-act="retry">Tentar de novo</button></div>`:'';
  const menuBadge=dst.st==='bad'||dst.st==='warn'||shopping().length>0||VAX.some(v=>vaxStatus(v).s==='late');
  const bar=tab==='inicio'
-  ?`<span class="logo">${LOGO}</span><div class="grow"><div class="t1">${esc(S.cfg.name||'Bebê')}</div><div class="t2">${esc(ageText(a))}</div></div><button class="icon-btn" data-act="themeToggle" aria-label="${isDark()?'Usar tema claro':'Usar tema escuro'}">${ic(isDark()?'sun':'moon')}</button><button class="who-chip" data-act="tab" data-id="ajustes">${esc(WHO||'Você')}</button>`
-  :ROOT.includes(tab)?`<div class="grow"><h1>${PAGES[tab]}</h1></div>${tab==='diario'?'<button class="btn sm" data-act="noteAdd">Anotação</button>':''}${tab==='menu'?`<button class="icon-btn" data-act="themeToggle" aria-label="${isDark()?'Usar tema claro':'Usar tema escuro'}">${ic(isDark()?'sun':'moon')}</button>`:''}`
+  ?`<span class="logo">${LOGO}</span><div class="grow"><div class="t1">${esc(S.cfg.name||'Bebê')}</div><div class="t2">${esc(ageText(a))}</div></div><button class="icon-btn" data-act="help" aria-label="Central de ajuda">${ic('help')}</button><button class="icon-btn" data-act="themeToggle" aria-label="${isDark()?'Usar tema claro':'Usar tema escuro'}">${ic(isDark()?'sun':'moon')}</button><button class="who-chip" data-act="tab" data-id="ajustes">${esc(WHO||'Você')}</button>`
+  :ROOT.includes(tab)?`<div class="grow"><h1>${PAGES[tab]}</h1></div>${tab==='diario'?'<button class="btn sm" data-act="noteAdd">Anotação</button>':''}${tab==='menu'?`<button class="icon-btn" data-act="help" aria-label="Central de ajuda">${ic('help')}</button><button class="icon-btn" data-act="themeToggle" aria-label="${isDark()?'Usar tema claro':'Usar tema escuro'}">${ic(isDark()?'sun':'moon')}</button>`:''}`
   :`<button class="back" ${tab==='album'&&ALB.open?'data-act="albBack"':'data-act="tab" data-id="menu"'} aria-label="Voltar">${ic('back')}</button><div class="grow"><h1>${tab==='album'?esc(albTitle()):PAGES[tab]}</h1></div>${tab==='album'&&!ALB.open?`<button class="icon-btn" data-act="albAdd" aria-label="Adicionar fotos">${ic('plus')}</button>`:''}${tab==='enxoval'&&S.enx.length?`<button class="icon-btn" data-act="enxAdd" aria-label="Adicionar item">${ic('plus')}</button>`:''}`;
  const nb=(id,i,l,badge)=>`<button class="nb" data-act="tab" data-id="${id}"${(tab===id||(id==='menu'&&!ROOT.includes(tab)))?' aria-current="page"':''}>${ic(i)}${badge?'<span class="badge"></span>':''}${l}</button>`;
  app.innerHTML=`<header class="appbar"><div class="in">${bar}</div></header>
@@ -34,7 +34,7 @@ function render(){
  <nav class="nav" aria-label="Navegação"><div class="in">${nb('inicio','home','Início')}${nb('diario','list','Diário')}<button class="fab" data-act="fab" aria-label="Novo registro: fralda, mamada, sono e mais" aria-haspopup="dialog">${ic('plus')}</button>${nb('sons','music','Sons')}${nb('menu','grid','Menu',menuBadge)}</div></nav>`;
  if(!enter)window.scrollTo(0,scrollY);
  hydrate();
- if(!ONB_SHOWN&&!lsGet('ddb-onb')){ONB_SHOWN=true;setTimeout(showOnb,450)}
+ if(!ONB_SHOWN&&!lsGet('ddb-onb')){ONB_SHOWN=true;setTimeout(()=>startTour('main'),600)}else pageTour(tab);checkGame();
 }
 
 /* ---------- Início ---------- */
@@ -71,7 +71,9 @@ VIEWS.inicio=()=>{
  const recent=ds.list.slice(0,5);
  return`<div class="now">${t1}${t2}${t3}</div>
  ${al.length?`<div class="alerts">${al.map(x=>`<div class="alert"><span class="ic" style="--c:${x.c}">${ic(x.i)}</span><div class="tx"><b>${esc(x.t)}</b>${x.s?`<span>${esc(x.s)}</span>`:''}</div><button class="btn sm" data-act="${x.a}"${x.id?` data-id="${esc(x.id)}"`:''} aria-label="${x.l}: ${esc(x.t)}">${x.l}</button>${x.x?`<button class="x" data-act="${x.x}" aria-label="Dispensar aviso: ${esc(x.t)}">×</button>`:''}</div>`).join('')}</div>`:''}
+ ${quickRow()}
  ${nextsCard()}
+ ${gameCard()}
  ${stockPanel()}
  <div class="card"><div class="card-h"><h2>Hoje</h2><button class="linkbtn" data-act="tab" data-id="diario">Ver diário</button></div>
   <div class="today">${ring(ds.sleep/HR,ph.sonoH[0],'var(--sleep)',fmtDur(ds.sleep),'de sono')}
@@ -103,49 +105,12 @@ VIEWS.menu=()=>{
   ${T('album','image','var(--feed)','Álbum de fotos',S.photos.length?`${S.photos.length} ${S.photos.length===1?'foto':'fotos'} · ${S.albums.length} ${S.albums.length===1?'álbum':'álbuns'}`:'Fotos separadas por fase')}
   ${T('fases','sprout','var(--growth)','Fase e marcos',age()?phaseOf(age()).name:'')}</div>
  <div class="mgroup"><div class="label">App</div>
-  ${T('tutorial','book','var(--other)','Como usar','Passo a passo rápido')}
+  ${T('conquistas','trophy','var(--impact)','Conquistas','Sequência, níveis e medalhas da família')}
+  ${T('ajuda','help','var(--accent)','Central de ajuda','Tour, explicações e atalhos')}
   ${T('ajustes','gear','var(--other)','Ajustes','Família, avisos e dados do bebê')}</div>`;
 };
 
-/* ---------- Como usar ---------- */
-VIEWS.tutorial=()=>{const H=(i,c,t,st)=>`<details class="howto"><summary><span class="ic" style="--c:${c}">${ic(i)}</span>${t}</summary><ol>${st.map(s=>`<li>${s}</li>`).join('')}</ol></details>`;
- return`<div class="card" style="display:flex;gap:12px;align-items:center"><span class="ic lg">${ic('book')}</span><div style="flex:1"><b>Apresentação rápida</b><div class="small muted">1 minuto, com o principal.</div></div><button class="btn sm primary" data-act="showOnb" aria-label="Ver a apresentação rápida">Ver</button></div>
- ${H('moon','var(--sleep)','Registrar o sono',['Na Início, toque no cartão <b>Sono</b> quando o bebê dormir.','Toque de novo quando acordar. O tempo é contado sozinho.','Esqueceu? Use <b>+ › Sono</b> e ajuste o horário.'])}
- ${H('bottle','var(--feed)','Registrar mamada',['Toque em <b>Mamada</b>: peito, mamadeira ou comidinha.','No peito, use <b>Começar a mamar agora</b> para cronometrar. O app sugere o próximo lado.','Para encerrar, toque no cartão laranja.'])}
- ${H('diaper','var(--diaper)','Fraldas e estoque',['Toque em <b>Fralda</b> e escolha xixi, cocô, os dois ou seca.','Cada troca desconta 1 fralda do estoque.','Chegou pacote? <b>+ › Comprei fraldas</b>. O app avisa quando faltarem 3 dias.'])}
- ${H('pill','var(--health)','Remédio com lembrete',['<b>+ › Remédio</b>, com nome e dose.','Em <b>Lembrar a próxima dose</b>, escolha o intervalo e por quantos dias.','Na hora chega o aviso, e aparece <b>Dei agora</b> na Início.'])}
- ${H('flask','var(--health)','Exames',['<b>+ › Exame</b> para guardar o pedido, com foto ou PDF.','Com data e hora, vocês recebem aviso na véspera e 2 h antes.','Saiu o resultado? Abra o exame, mude para <b>Com resultado</b> e anexe.'])}
- ${H('syringe','var(--health)','Vacinas',['Em <b>Menu › Vacinas e saúde</b> está a caderneta pela idade.','Toque na vacina para marcar como aplicada.'])}
- ${H('music','var(--sleep)','Sons para acalmar',['Abra <b>Sons</b> e toque em um som. Toque de novo para parar.','Escolha quando desligar: 15, 30 ou 60 minutos.','Funciona sem internet. No iPhone, deixe o app aberto na tela.'])}
- ${H('diaper','var(--diaper)','Fraldas por tamanho e lenços',['Em <b>Menu › Fraldas e lenços</b>, toque em cada tamanho para dizer quantas tem e a meta.','Marque o tamanho em uso: cada troca desconta dele.','Nos lenços, toque em <b>Abri um pacote</b>. O app calcula quanto dura.'])}
- ${H('bag','var(--feed)','Enxoval',['Em <b>Menu › Enxoval</b>, comece com a lista sugerida ou do zero.','Toque na situação do item para passar de Falta › Pesquisando › Comprado › Ganhou.','Toque no nome para mudar quantidade, tamanho, valor e observação.'])}
- ${H('cloudoff','var(--warn)','Sem internet',['Pode registrar normalmente: fica guardado no celular.','Quando a conexão volta, tudo é enviado sozinho. Fotos e anexos precisam de internet.'])}
- ${H('image','var(--feed)','Álbum de fotos',['Em <b>Menu › Álbum</b> (ou <b>+ › Foto</b>), escolha as fotos do celular.','Elas vão sozinhas para a fase certa, pela data em que foram tiradas.','Crie álbuns próprios, escreva as memórias de cada fase e marque as favoritas com o coração.'])}
- ${H('note','var(--other)','Corrigir ou apagar',['Toque no registro na Início ou no Diário.','Mude e salve, ou apague.'])}
- ${H('users','var(--accent)','Usar em família',['Em <b>Menu › Ajustes</b>, copie o código de convite.','A outra pessoa cria a conta e entra com o código.','O que um registra aparece na hora para o outro.'])}
- ${H('bell','var(--warn)','Instalar e receber avisos',['iPhone: no Safari, <b>Compartilhar › Adicionar à Tela de Início</b>. Android: <b>⋮ › Instalar app</b>.','Abra pelo ícone e toque em <b>Ativar avisos</b>.','Em <b>Ajustes</b>, escolha o que quer receber.'])}`};
-
-/* ---------- boas-vindas ---------- */
-function showOnb(){ONB=0;drawOnb()}
-function drawOnb(){
- let el=$('#onb');if(!el){el=document.createElement('div');el.id='onb';el.setAttribute('role','dialog');el.setAttribute('aria-modal','true');document.body.appendChild(el);
-  let x0=null;el.addEventListener('touchstart',e=>{x0=e.touches[0].clientX},{passive:true});el.addEventListener('touchend',e=>{if(x0==null)return;const dx=e.changedTouches[0].clientX-x0;x0=null;if(dx<-50&&ONB<4)A.onbNext();if(dx>50&&ONB>0){ONB--;drawOnb()}})}
- const n=S.cfg?.name||'o bebê';
- const art3=`<span class="ic lg" style="--c:var(--sleep)">${ic('moon')}</span><span class="ic lg" style="--c:var(--feed)">${ic('bottle')}</span><span class="ic lg" style="--c:var(--diaper)">${ic('diaper')}</span>`;
- const sl=[
-  {art:`<div style="width:84px">${LOGO}</div>`,h:'Bem-vindos ao Diário do Bebê',p:`Tudo de ${n} num lugar só, para vocês acompanharem juntos.`},
-  {art:art3,h:'Registre em um toque',p:'Na Início, toque em Sono, Mamada ou Fralda. No botão + ficam remédio, banho, exame, medidas e o resto.'},
-  {art:`<span class="ic lg" style="--c:var(--accent)">${ic('users')}</span>`,h:'Os dois ao mesmo tempo',p:`Quem cuida junto entra com o código ${INVITE} (fica em Menu › Ajustes). O que um registra aparece na hora para o outro.`},
-  {art:`<span class="ic lg" style="--c:var(--sleep)">${ic('music')}</span>`,h:'Sons para acalmar',p:'Útero, shhh, chuva, ruído branco e canção de ninar, com timer. Funcionam até sem internet.'},
-  {art:`<span class="ic lg" style="--c:var(--warn)">${ic('bell')}</span>`,h:'Avisos na hora certa',p:'Fralda acabando, consulta na véspera, hora do remédio e vacina chegando. Você escolhe o que quer receber.',last:true}];
- const s=sl[ONB];
- el.innerHTML=`<button class="skip" data-act="onbEnd">Pular</button><div class="slide"><div class="art">${s.art}</div><h2>${s.h}</h2><p>${esc(s.p)}</p></div><div class="dots">${sl.map((_,i)=>`<i class="${i===ONB?'on':''}"></i>`).join('')}</div>
- <div class="acts">${s.last?`${PUSH==='off'?'<button class="btn primary" data-act="onbPush">Ativar avisos</button>':PUSH==='ios-install'?'<p class="small muted" style="text-align:center;margin:0 0 6px">No iPhone, instale o app primeiro (Safari › Compartilhar › Adicionar à Tela de Início). Depois ative os avisos.</p>':''}<button class="btn${PUSH==='off'?'':' primary'}" data-act="onbEnd">Começar a usar</button>`:'<button class="btn primary" data-act="onbNext">Continuar</button>'}</div>`;
-}
-A.onbNext=()=>{ONB=Math.min(4,ONB+1);drawOnb()};
-A.onbEnd=()=>{lsSet('ddb-onb','1');const el=$('#onb');if(el){el.style.transition='opacity .2s';el.style.opacity='0';setTimeout(()=>el.remove(),200)}};
-A.onbPush=()=>{A.pushOn();A.onbEnd()};
-A.showOnb=()=>showOnb();
+/* Central de ajuda: js/18-ajuda.js · tour: js/19-tour.js */
 
 /* ---------- registrar (+) ---------- */
 A.fab=()=>openModal({title:'Registrar',noFooter:true,body:`<div class="grid-act">${[

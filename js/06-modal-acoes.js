@@ -59,7 +59,7 @@ function openEventForm(ev,isNew){
 
 /* ============ ações ============ */
 const A={};
-A.tab=id=>{id=pageOf(id);if(M)closeModal();S.tab=id;lsSet('bebe-tab',id);try{history.replaceState(null,'','#'+id)}catch(e){}render();window.scrollTo(0,0)};
+A.tab=id=>{id=pageOf(id);if(document.activeElement&&document.activeElement.matches('input,textarea,select'))document.activeElement.blur();if(M)closeModal();S.tab=id;lsSet('bebe-tab',id);try{history.replaceState(null,'','#'+id)}catch(e){}render();window.scrollTo(0,0)};
 A.sleepToggle=async()=>{const sl=ongoing('sleep');if(sl){await updateEvent(sl,{end:Date.now()});toast('Acordou · dormiu '+fmtDur(Date.now()-sl.start))}else{await addEvent({type:'sleep',start:Date.now(),end:null});toast('Sono iniciado')}};
 A.sleepPast=()=>openEventForm({type:'sleep',start:Date.now()-HR,end:Date.now()},true);
 A.feedOpen=()=>openEventForm({type:'feed',kind:'peito',start:Date.now()-15*MIN,end:Date.now()},true);

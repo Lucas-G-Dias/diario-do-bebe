@@ -16,7 +16,7 @@ document.addEventListener('keydown',e=>{const el=e.target;
  if((e.key==='Enter'||e.key===' ')&&el.matches&&el.matches('[role=button][data-act]')&&!el.matches(NATIVE)){e.preventDefault();el.click();return}
  const vw=$('#viewer');
  if(vw&&!M){if(e.key==='ArrowRight'){A.vwNext();return}if(e.key==='ArrowLeft'){A.vwPrev();return}if(e.key==='Escape'){A.vwClose();return}}
- if(e.key!=='Tab')return;const box=M?$('#modal .sheet'):vw;if(!box)return;const f=focusables(box);if(!f.length)return;
+ if(e.key!=='Tab')return;const box=TOUR?$('#tour .t-pop'):M?$('#modal .sheet'):vw;if(!box)return;const f=focusables(box);if(!f.length)return;
  const first=f[0],last=f[f.length-1],cur=document.activeElement;
  if(!box.contains(cur)){e.preventDefault();first.focus();return}
  if(e.shiftKey&&cur===first){e.preventDefault();last.focus()}else if(!e.shiftKey&&cur===last){e.preventDefault();first.focus()}
