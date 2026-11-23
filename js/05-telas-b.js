@@ -87,6 +87,7 @@ VIEWS.fases=()=>{
   <div class="facts"><div class="fact"><div class="label">Sono</div>${esc(ph.sono)}</div><div class="fact"><div class="label">Alimentação</div>${esc(ph.alim)}</div><div class="fact"><div class="label">Fraldas</div>${esc(ph.fraldas)}</div></div>
  </div>
  <div class="card"><div class="card-h"><h2>Linha das fases</h2></div><div class="ptrack">${PHASES.map(p=>`<div class="pstep ${p===ph?'now':a.months>=p.to?'past':''}"><div class="label">${p.from===0?'0':p.from}${p.to<999?'–'+p.to+' meses':'+ meses'}</div><b>${esc(p.name)}</b></div>`).join('')}</div></div>
+ ${devCard()}
  <div class="card"><div class="card-h"><h2>Primeiras vezes</h2><button class="btn primary sm" data-act="msAdd">Registrar conquista</button></div>
   ${ms.length?`<div class="rows">${ms.map(m=>`<div class="row" data-act="msEdit" data-id="${m.id}" style="cursor:pointer"><div style="min-width:90px" class="ttl small">${fmtDY(dateOnly(m.date))}</div><div class="main"><div class="ttl">${esc(m.title)}</div><div class="small muted">com ${esc(ageText(age(dateOnly(m.date))))}${m.note?' · '+esc(m.note):''}</div></div></div>`).join('')}</div>`:`<div class="empty">Guarde aqui o primeiro sorriso, o primeiro dente, os primeiros passos… com a data e a idade.</div>`}
  </div>`;
@@ -118,5 +119,6 @@ VIEWS.ajustes=()=>{const c=S.cfg,fr=S.inv.filter(i=>i.cat==='fralda');return`
   <div class="card"><h2>Instalar no celular</h2>
    <p class="small"><b>iPhone (Safari):</b> toque em <b>Compartilhar</b> (o quadrado com a seta) e escolha <b>Adicionar à Tela de Início</b>.</p>
    <p class="small"><b>Android (Chrome):</b> toque no menu <b>⋮</b> e escolha <b>Instalar app</b> ou <b>Adicionar à tela inicial</b>.</p>
+   <p class="small muted"><button class="linkbtn" data-act="backup">Baixar uma cópia de todos os dados</button> (arquivo para guardar)</p>
    <p class="small muted">Conta: ${esc(ME.email||'')} · <button class="linkbtn" data-act="logout">Sair</button></p></div>
  </div></div>`};

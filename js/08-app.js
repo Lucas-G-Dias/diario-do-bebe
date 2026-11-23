@@ -1,5 +1,5 @@
 /* ============ render (v2: app com navegação inferior) ============ */
-const PAGES={inicio:'Início',diario:'Diário',sons:'Sons',menu:'Menu',estoque:'Estoque',crescimento:'Crescimento',agenda:'Agenda',exames:'Exames',saude:'Vacinas e saúde',fases:'Fase e marcos',ajustes:'Ajustes',tutorial:'Central de ajuda',ajuda:'Central de ajuda',conquistas:'Conquistas',album:'Álbum',fraldas:'Fraldas e lenços',enxoval:'Enxoval'};
+const PAGES={inicio:'Início',diario:'Diário',sons:'Sons',menu:'Menu',estoque:'Estoque',crescimento:'Crescimento',agenda:'Agenda',exames:'Exames',saude:'Vacinas e saúde',fases:'Fase e marcos',ajustes:'Ajustes',tutorial:'Central de ajuda',consulta:'Para a consulta',alimentos:'Introdução alimentar',ajuda:'Central de ajuda',conquistas:'Conquistas',album:'Álbum',fraldas:'Fraldas e lenços',enxoval:'Enxoval'};
 const ALIAS={hoje:'inicio',registros:'diario'};
 const pageOf=t=>{t=ALIAS[t]||t;return PAGES[t]?t:'inicio'};
 const TABS=Object.entries(PAGES);
@@ -53,6 +53,7 @@ function homeAlerts(){
  else if(d.st==='bad'||d.st==='warn')out.push({c:`var(--${d.st==='bad'?'bad':'warn'})`,i:'diaper',t:d.st==='bad'?'Fraldas acabando':'Comprar fraldas em breve',s:`Restam ${d.total}, dá para uns ${Math.floor(d.days)} dias`,a:'buyDiaper',l:'Comprei'});
  const wp=wipesAll();if(wp.n&&(wp.st==='bad'||wp.st==='warn'))out.push({c:`var(--${wp.st==='bad'?'bad':'warn'})`,i:'drop',t:wp.st==='bad'?'Lenços acabando':'Comprar lenços em breve',s:`Restam uns ${wp.total} lenços, dá para ${Math.max(0,Math.floor(wp.days))} dias`,a:'wipeAdd',l:'Comprei'});
  const sh=shopping().filter(i=>i.cat!=='lenco');if(sh.length)out.push({c:'var(--warn)',i:'bag',t:'Lista de compras',s:sh.map(i=>i.name).slice(0,3).join(', '),a:'tab',id:'estoque',l:'Ver'});
+ const ped=S.agenda.find(a=>!a.done&&a.type==='consulta'&&a.date&&dateOnly(a.date)>=dayStart(now)&&dateOnly(a.date)-dayStart(now)<=2*DAY);if(ped)out.push({c:'var(--health)',i:'note',t:'Consulta '+relDay(dateOnly(ped.date))+': '+ped.title,s:qOpen().length?`${qOpen().length} ${qOpen().length>1?'perguntas anotadas':'pergunta anotada'} e o resumo pronto`:'Anote as dúvidas e leve o resumo pronto',a:'tab',id:'consulta',l:'Preparar'});
  const wait=S.exams.find(e=>e.status==='realizado'&&e.date&&dateOnly(e.date)<now-10*DAY);if(wait)out.push({c:'var(--health)',i:'flask',t:'Resultado de exame',s:wait.name+' ainda sem resultado',a:'exEdit',id:wait.id,l:'Abrir'});
  return out.slice(0,5);
 }
@@ -62,7 +63,7 @@ VIEWS.inicio=()=>{
  const ds=dayStats(dayStart(now)),a=age(),ph=a?phaseOf(a):PHASES[0];
  const nextSide=lastPeito?(lastPeito.side==='E'?'direito':lastPeito.side==='D'?'esquerdo':''):'';
  const t1=sl?tile('sleep','sleepToggle','Dormindo',fmtDur(now-sl.start),'desde '+fmtT(sl.start),'Toque quando acordar',true,'moon')
-  :tile('sleep','sleepToggle',lastSl?'Acordado':'Sono',lastSl?fmtDur(now-lastSl.end):'—',lastSl?'desde '+fmtT(lastSl.end):'sem registro','Toque quando dormir',false,'moon');
+  :tile('sleep','sleepToggle',lastSl?'Acordado':'Sono',lastSl?fmtDur(now-lastSl.end):'—',napHint()?napHint().txt:lastSl?'desde '+fmtT(lastSl.end):'sem registro','Toque quando dormir',false,'moon');
  const t2=fd?tile('feed','feedStop','Mamando',fmtDur(now-fd.start),'lado '+(SIDE[fd.side]||''),'Toque para encerrar',true,'bottle')
   :tile('feed','feedOpen','Mamada',lastFeed?ago(lastFeed.start):'—',lastFeed?(nextSide?'próximo peito: '+nextSide:evText(lastFeed).t):'sem registro','Registrar',false,'bottle');
  const t3=tile('diaper','diaperOpen','Fralda',lastDi?ago(lastDi.start):'—',lastDi?`${ds.diapers} ${ds.diapers===1?'troca':'trocas'} hoje`:'sem registro','Trocar',false,'diaper');
@@ -95,6 +96,8 @@ VIEWS.menu=()=>{
  return`<div class="mgroup"><div class="label">Saúde</div>
   ${T('saude','syringe','var(--health)','Vacinas e saúde',late?`${late} ${late>1?'vacinas atrasadas':'vacina atrasada'}`:'Caderneta, remédios e ficha',late?'!':'')}
   ${T('exames','flask','var(--health)','Exames',pend?`${pend} em andamento`:'Pedidos, resultados e anexos')}
+  ${T('consulta','note','var(--health)','Para a consulta',qOpen().length?`${qOpen().length} ${qOpen().length>1?'perguntas anotadas':'pergunta anotada'}`:'Perguntas e resumo para o pediatra')}
+  ${T('alimentos','bottle','var(--feed)','Introdução alimentar',`${foodsOffered().size} alimentos oferecidos`)}
   ${T('agenda','cal','var(--accent)','Agenda',up?`Próximo: ${fmtD(dateOnly(up.date))} · ${up.title}`:'Consultas e compromissos')}
   ${T('crescimento','growth','var(--growth)','Crescimento',g?`${num(g.w,2)} kg em ${fmtD(dateOnly(g.date))}`:'Peso, altura e curvas')}</div>
  <div class="mgroup"><div class="label">Casa</div>

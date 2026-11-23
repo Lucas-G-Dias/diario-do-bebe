@@ -113,3 +113,16 @@ drop policy if exists files_family on storage.objects;
 create policy files_family on storage.objects for all to authenticated
   using (bucket_id = 'files' and public.is_member(((storage.foldername(name))[1])::uuid))
   with check (bucket_id = 'files' and public.is_member(((storage.foldername(name))[1])::uuid));
+
+-- Contagem de todo o histórico da família (para medalhas como "1.000 fraldas").
+-- Roda com as permissões de quem chama: o RLS de docs garante que só a própria família é lida.
+create or replace function public.family_stats(f uuid) returns jsonb language sql stable as $$
+  with ev as (select data from public.docs where family_id = f and deleted = false and path like 'months/%/events/%')
+  select jsonb_build_object(
+    'types', (select coalesce(jsonb_object_agg(t, n), '{}'::jsonb) from (select data->>'type' t, count(*) n from ev group by 1) x),
+    'total', (select count(*) from ev),
+    'days', (select coalesce(jsonb_agg(d order by d), '[]'::jsonb) from (
+       select distinct (to_timestamp((data->>'start')::bigint / 1000.0) at time zone 'America/Sao_Paulo')::date d
+       from ev where data->>'start' ~ '^[0-9]+$') y));
+$$;
+grant execute on function public.family_stats(uuid) to authenticated;

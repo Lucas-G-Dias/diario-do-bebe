@@ -16,6 +16,8 @@ const TOURS={
  album:[{s:'[data-act=albAdd]',t:'Adicionar fotos',p:'Escolha várias de uma vez. Elas vão sozinhas para a fase certa pela data.'},{s:'.alb-tabs',t:'Fases, álbuns e favoritas',p:'Veja por fase do bebê, por álbum que vocês criarem ou só as favoritas.'}],
  enxoval:[{s:'.ring, main .card',t:'Quanto já tem',p:'O gráfico mostra o que falta, o que está em pesquisa e o que já foi comprado ou ganho.'},{s:'[data-act=enxCheck]',t:'Marque num toque',p:'Toque na situação do item para avançar: Falta › Pesquisando › Comprado › Ganhou.'}],
  agenda:[{s:'[data-act=agAdd]',t:'Novo compromisso',p:'Consulta, vacina ou exame. Chega aviso na véspera e 2 horas antes.'},{s:'[data-act=vaxOpen],[data-act=vaxDone],main .card:nth-of-type(2)',t:'Vacinas do SUS',p:'Aparecem pela idade. Toque para marcar como aplicada ou para agendar.'}],
+ consulta:[{s:'#qForm',t:'Anote na hora',p:'Lembrou de uma dúvida às 3 da manhã? Escreva aqui. Na consulta, é só abrir.'},{s:'.sumlist',t:'Resumo pronto',p:'Sono, mamadas, fraldas, febre, remédios e peso dos últimos 14 dias, para mostrar ou enviar ao pediatra.'}],
+ alimentos:[{s:'.foods',t:'O que já provou',p:'Registrando a comidinha com o nome do alimento, ele é marcado sozinho. Toque para dizer como foi.'}],
  conquistas:[{s:'.lvl',t:'Nível da família',p:'Registros, fotos, medidas e vacinas dão pontos. Os dois somam juntos.'},{s:'.streak14',t:'Sequência',p:'Cada bolinha é um dia com registro. Não deixe a chama apagar!'},{s:'.badges',t:'Medalhas',p:'As cinzas mostram como liberar.'}]};
 let TOUR=null;
 const wait=ms=>new Promise(r=>setTimeout(r,ms));

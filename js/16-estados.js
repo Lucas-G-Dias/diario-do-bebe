@@ -1,6 +1,6 @@
 /* ============ estados de carregamento, erro e nova tentativa ============ */
 /* Que coleções cada página precisa para não mostrar um "vazio" falso. EV = registros do mês atual. */
-const PAGE_DATA={inicio:['inventory','agenda','vaccines','EV'],diario:['EV'],agenda:['agenda','vaccines'],saude:['vaccines'],exames:['exams'],crescimento:['growth'],fases:['milestones'],album:['photos','albums'],enxoval:['enxoval'],estoque:['inventory'],fraldas:['inventory']};
+const PAGE_DATA={inicio:['inventory','agenda','vaccines','EV'],diario:['EV'],agenda:['agenda','vaccines'],saude:['vaccines'],exames:['exams'],crescimento:['growth'],fases:['milestones'],album:['photos','albums'],enxoval:['enxoval'],estoque:['inventory'],fraldas:['inventory'],consulta:['questions','EV'],alimentos:['foods','EV'],conquistas:['EV']};
 function pageState(tab){
  if(CACHE_HIT)return'ok'; // já há dados salvos no aparelho: mostra e atualiza por trás
  const ss=(PAGE_DATA[tab]||[]).map(p=>p==='EV'?'months/'+ymOf(Date.now())+'/events':p).map(p=>subs.find(x=>x.path===p)).filter(Boolean);

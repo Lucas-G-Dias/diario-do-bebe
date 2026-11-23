@@ -10,6 +10,9 @@ function subscribeAll(){
  store.col('photos',l=>{S.photos=l;render()});
  store.col('enxoval',l=>{S.enx=l;render()});
  store.col('albums',l=>{S.albums=l;render()});
+ store.col('questions',l=>{S.questions=l;render()});
+ store.col('dev',l=>{S.dev=Object.fromEntries(l.map(x=>[x.id,x]));render()});
+ store.col('foods',l=>{S.foods=l;render()});
  store.doc('game/main',d=>{S.game=d||{};render()});
  store.col('albnotes',l=>{S.albnotes=Object.fromEntries(l.map(x=>[x.id,x]));render()});
  subMonths();

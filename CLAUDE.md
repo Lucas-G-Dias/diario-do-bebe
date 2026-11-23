@@ -41,8 +41,12 @@ Toda a interface e as mensagens são em português do Brasil.
 | `js/17-acessibilidade.js` | botões de verdade para teclado/leitor, dica nos ícones, foco preso no diálogo |
 | `js/18-ajuda.js` | Central de ajuda (busca, miniaturas ilustrativas), ícones extras |
 | `js/19-tour.js` | tour guiado com destaque (`TOURS.main` e um por tela; `startTour`, `pageTour`) |
-| `js/20-conquistas.js` | sequência, nível, medalhas (`game/main`), comemoração |
+| `js/20-conquistas.js` | sequência, nível, 46 medalhas (`game/main`), histórico total pela RPC `family_stats` |
 | `js/21-atalhos.js` | "Repetir" da Início, teclas, `?a=` dos atalhos do ícone |
+| `js/22-consulta.js` | Para a consulta: perguntas, resumo de 14 dias, backup |
+| `js/23-desenvolvimento.js` | marcos da Caderneta por idade, previsão da próxima soneca |
+| `js/24-alimentos.js` | introdução alimentar (marca sozinho pelo registro Comidinha) |
+| `supabase/emails-pt.json` | e-mails em português (aplicar depois de configurar o SMTP) |
 | `css/identidade.css` | cores 60/30/10 (`--impact` papaya só para ação e comemoração), tour, ajuda, conquistas |
 | `js/14-boot.js` | assinaturas de dados, carregar família, início do app (sempre o último) |
 | `sw.js` | modo offline e notificações push |
